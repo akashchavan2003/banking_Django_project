@@ -1,0 +1,60 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="{% static 'ht2.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Management System</title>
+    <script src="{% static 'script.js' %}"></script>
+</head>
+<body>
+    <header>
+        <h1>Welcome to Our Bank</h1>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="#">Home</a></li>
+            <li><a href="#">Accounts</a></li>
+            <li><a href="#">Transactions</a></li>
+            <li><a href="#">Services</a></li>
+            <li><a href="#">Contact</a></li>
+        </ul>
+    </nav>
+    <main>
+        <section class="hero">
+            <h2>Your Trusted Banking Partner</h2>
+            <p>Manage your finances with ease. Sign up for an account today!</p>
+            <a href="#" class="btn">Open an Account</a>
+        </section>
+        <section class="facilities">
+            <div class="facility">
+                <h3>Date & Time</h3>
+                <p id="datetime">Loading...</p>
+            </div>
+            <div class="facility">
+                <h3>Cash in Hand</h3>
+                <p>$10,000.00</p>
+            </div>
+            <div class="facility">
+                <h3>Loans</h3>
+                <p>Apply for a loan today!</p>
+                <a href="#" class="btn">Apply Now</a>
+            </div>
+            <div class="facility">
+                <h3>Fixed Deposit (FD)</h3>
+                <p>Learn about our FD options</p>
+                <a href="#" class="btn">Explore</a>
+            </div>
+            <div class="facility">
+                <h3>Recurring Deposit (RD)</h3>
+                <p>Start saving regularly with RD</p>
+                <a href="#" class="btn">Get Started</a>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2024 Bank Management System. All rights reserved.</p>
+    </footer>
+</body>
+</html>

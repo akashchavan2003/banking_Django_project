@@ -1,0 +1,88 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup Page</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'signup.css' %}">
+    <!-- Add Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="form-body">
+        <div class="row">
+            <div class="form-holder">
+                <div class="form-content">
+                    <div class="form-items">
+                        <h3>Register Today</h3>
+                        <p>Fill in the data below.</p>
+                        <form method="post" action="{% url 'signup' %}" class="requires-validation" novalidate>
+                            {% csrf_token %}
+                            <div class="col-md-12">
+                                <input class="form-control" type="text" name="name" placeholder="Full Name" required>
+                                <div class="valid-feedback">Username field is valid!</div>
+                                <div class="invalid-feedback">Username field cannot be blank!</div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <input class="form-control" type="email" name="email" placeholder="E-mail Address" required>
+                                <div class="valid-feedback">Email field is valid!</div>
+                                <div class="invalid-feedback">Email field cannot be blank!</div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <select class="form-select mt-3" name="position" required>
+                                    <option selected disabled value="">Position</option>
+                                    <option value="jweb">Manager</option>
+                                    <option value="sweb">Clerk</option>
+                                    <option value="pmanager">Cashier</option>
+                                </select>
+                                <div class="valid-feedback">You selected a position!</div>
+                                <div class="invalid-feedback">Please select a position!</div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <input class="form-control" type="password" name="password" placeholder="Password" required>
+                                <div class="valid-feedback">Password field is valid!</div>
+                                <div class="invalid-feedback">Password field cannot be blank!</div>
+                            </div>
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="data" value="" id="invalidCheck" required>
+                                <label class="form-check-label">I confirm that all data are correct</label>
+                                <div class="invalid-feedback">Please confirm that the entered data are all correct!</div>
+                            </div>
+
+                            <div class="form-button mt-3">
+                                <button id="submit" type="submit" class="btn btn-primary">Register</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        (function () {
+            'use strict';
+            const forms = document.querySelectorAll('.requires-validation');
+            Array.from(forms).forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        })();
+    </script>
+</body>
+</html>
