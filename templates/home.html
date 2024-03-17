@@ -2,59 +2,576 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" type="text/css" href="{% static 'ht2.css' %}">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bank Management System</title>
-    <script src="{% static 'script.js' %}"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home</title>
+  <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'home.css' %}">
 </head>
 <body>
-    <header>
-        <h1>Welcome to Our Bank</h1>
-    </header>
+  <div class="dashboard">
+    <aside class="search-wrap">
+      <div class="bn">
+        <h2>{{ name }}</h2>
+      </div>
+      <div class="user-actions">
+        <button>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+            <!-- SVG content -->
+          </svg>
+        </button>
+        <form action="{% url 'login' %}" method="post">
+          {% csrf_token %}
+          <button type="submit" class="hover-effect">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+              <!-- SVG content -->
+            </svg>
+          </button>
+        </form>
+      </div>
+    </aside>
+    <header class="menu-wrap">
+      <figure class="user">
+        <div class="user-avatar">
+          <img src="https://images.unsplash.com/photo-1440589473619-3cde28941638?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=42ebdb92a644e864e032a2ebccaa25b6&auto=format&fit=crop&w=100&q=80" alt="Amanda King">
+        </div>
+        <figcaption>
+          {{ dir_name }}
+        </figcaption>
+      </figure>
+
     <nav>
+      <section class="dicover">
+        <h3>Discover</h3>
+
         <ul>
-            <li><a href="#">Home</a></li>
-            <li><a href="#">Accounts</a></li>
-            <li><a href="#">Transactions</a></li>
-            <li><a href="#">Services</a></li>
-            <li><a href="#">Contact</a></li>
+          <li>
+            <a href="#">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                <path
+                  d="M6.855 14.365l-1.817 6.36a1.001 1.001 0 0 0 1.517 1.106L12 18.202l5.445 3.63a1 1 0 0 0 1.517-1.106l-1.817-6.36 4.48-3.584a1.001 1.001 0 0 0-.461-1.767l-5.497-.916-2.772-5.545c-.34-.678-1.449-.678-1.789 0L8.333 8.098l-5.497.916a1 1 0 0 0-.461 1.767l4.48 3.584zm2.309-4.379c.315-.053.587-.253.73-.539L12 5.236l2.105 4.211c.144.286.415.486.73.539l3.79.632-3.251 2.601a1.003 1.003 0 0 0-.337 1.056l1.253 4.385-3.736-2.491a1 1 0 0 0-1.109-.001l-3.736 2.491 1.253-4.385a1.002 1.002 0 0 0-.337-1.056l-3.251-2.601 3.79-.631z" />
+              </svg>
+              Featured
+            </a>
+          </li>
+
+          <li>
+            <a href="#">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                <path
+                  d="M20.205 4.791a5.938 5.938 0 0 0-4.209-1.754A5.906 5.906 0 0 0 12 4.595a5.904 5.904 0 0 0-3.996-1.558 5.942 5.942 0 0 0-4.213 1.758c-2.353 2.363-2.352 6.059.002 8.412l7.332 7.332c.17.299.498.492.875.492a.99.99 0 0 0 .792-.409l7.415-7.415c2.354-2.353 2.355-6.049-.002-8.416zm-1.412 7.002L12 18.586l-6.793-6.793c-1.562-1.563-1.561-4.017-.002-5.584.76-.756 1.754-1.172 2.799-1.172s2.035.416 2.789 1.17l.5.5a.999.999 0 0 0 1.414 0l.5-.5c1.512-1.509 4.074-1.505 5.584-.002 1.563 1.571 1.564 4.025.002 5.588z" />
+              </svg>
+              Most popular
+            </a>
+          </li>
+
+          <li>
+            <a href="#">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                <path
+                  d="M12.707 2.293A.996.996 0 0 0 12 2H3a1 1 0 0 0-1 1v9c0 .266.105.52.293.707l9 9a.997.997 0 0 0 1.414 0l9-9a.999.999 0 0 0 0-1.414l-9-9zM12 19.586l-8-8V4h7.586l8 8L12 19.586z" />
+                <circle cx="7.507" cy="7.505" r="1.505" />
+              </svg>
+              Categories
+            </a>
+          </li>
+
+          <li>
+            <a href="#">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                <path
+                  d="M5.707 19.707L12 13.414l4.461 4.461L14.337 20H20v-5.663l-2.125 2.124L13.414 12l4.461-4.461L20 9.663V4h-5.663l2.124 2.125L12 10.586 5.707 4.293 4.293 5.707 10.586 12l-6.293 6.293z" />
+              </svg>
+              Shuffle
+            </a>
+          </li>
         </ul>
+      </section>
+
+      <section class="tools">
+        <h3>Tools</h3>
+
+        <ul>
+          <li>
+            <a href="#" class="active">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                <path
+                  d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z" />
+              </svg>
+              Search
+            </a>
+          </li>
+
+          <li>
+            <a href="3">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                <path d="M13 7L11 7 11 11 7 11 7 13 11 13 11 17 13 17 13 13 17 13 17 11 13 11z" />
+                <path
+                  d="M12,2C6.486,2,2,6.486,2,12s4.486,10,10,10c5.514,0,10-4.486,10-10S17.514,2,12,2z M12,20c-4.411,0-8-3.589-8-8 s3.589-8,8-8s8,3.589,8,8S16.411,20,12,20z" />
+              </svg>
+              Create portfolio
+            </a>
+          </li>
+
+          <li>
+            <a href="#">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                <path
+                  d="M21 4H3a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1zm-1 14H4V9.227l7.335 6.521a1.003 1.003 0 0 0 1.33-.001L20 9.227V18zm0-11.448l-8 7.11-8-7.111V6h16v.552z" />
+              </svg>
+              Messages
+            </a>
+          </li>
+        </ul>
+      </section>
+
+      <section class="dicover">
+        <h3>Finance</h3>
+
+        <ul>
+          <li>
+            <a href="#">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                <path
+                  d="M20,9l-4-4v3H9c-2.757,0-5,2.243-5,5s2.243,5,5,5h3v-2H9c-1.654,0-3-1.346-3-3s1.346-3,3-3h7v3L20,9z" />
+              </svg>
+              Buy
+            </a>
+          </li>
+
+          <li>
+            <a href="#">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                <path
+                  d="M15,8H8V5L4,9l4,4v-3h7c1.654,0,3,1.346,3,3s-1.346,3-3,3h-3v2h3c2.757,0,5-2.243,5-5S17.757,8,15,8z" />
+              </svg>
+              Sell
+            </a>
+          </li>
+
+          <li>
+            <a href="#">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                <path
+                  d="M21,3h-4V2h-2v1H9V2H7v1H3C2.447,3,2,3.447,2,4v17c0,0.553,0.447,1,1,1h18c0.553,0,1-0.447,1-1V4C22,3.447,21.553,3,21,3z M7,5v1h2V5h6v1h2V5h3v3H4V5H7z M4,20V10h16v10H4z" />
+                <path
+                  d="M11,15.586l-1.793-1.793l-1.414,1.414l2.5,2.5C10.488,17.902,10.744,18,11,18s0.512-0.098,0.707-0.293l5-5l-1.414-1.414 L11,15.586z" />
+              </svg>
+              Invoice
+            </a>
+          </li>
+
+          <li>
+            <a href="#">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                <path d="M16 12h2v3h-2z" />
+                <path
+                  d="M21 7h-1V4a1 1 0 0 0-1-1H5c-1.206 0-3 .799-3 3v11c0 2.201 1.794 3 3 3h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1zM5 5h13v2H5.012C4.55 6.988 4 6.805 4 6s.55-.988 1-1zm15 13H5.012C4.55 17.988 4 17.805 4 17V8.833c.346.115.691.167 1 .167h15v9z" />
+              </svg>
+              Wallet
+            </a>
+          </li>
+        </ul>
+      </section>
     </nav>
-    <main>
-        <section class="hero">
-            <h2>Your Trusted Banking Partner</h2>
-            <p>Manage your finances with ease. Sign up for an account today!</p>
-            <a href="#" class="btn">Open an Account</a>
-        </section>
-        <section class="facilities">
-            <div class="facility">
-                <h3>Date & Time</h3>
-                <p id="datetime">Loading...</p>
-            </div>
-            <div class="facility">
-                <h3>Cash in Hand</h3>
-                <p>$10,000.00</p>
-            </div>
-            <div class="facility">
-                <h3>Loans</h3>
-                <p>Apply for a loan today!</p>
-                <a href="#" class="btn">Apply Now</a>
-            </div>
-            <div class="facility">
-                <h3>Fixed Deposit (FD)</h3>
-                <p>Learn about our FD options</p>
-                <a href="#" class="btn">Explore</a>
-            </div>
-            <div class="facility">
-                <h3>Recurring Deposit (RD)</h3>
-                <p>Start saving regularly with RD</p>
-                <a href="#" class="btn">Get Started</a>
-            </div>
-        </section>
-    </main>
-    <footer>
-        <p>&copy; 2024 Bank Management System. All rights reserved.</p>
-    </footer>
+  </header>
+
+  <main class="content-wrap">
+    <header class="content-head">
+      <h1>Societe Generale</h1>
+
+      <div class="action">
+        <button>
+          Save search
+        </button>
+      </div>
+    </header>
+
+    <div class="content">
+      <section class="info-boxes">
+        <div class="info-box">
+          <div class="box-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+              <path d="M21 20V4a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1zm-2-1H5V5h14v14z" />
+              <path
+                d="M10.381 12.309l3.172 1.586a1 1 0 0 0 1.305-.38l3-5-1.715-1.029-2.523 4.206-3.172-1.586a1.002 1.002 0 0 0-1.305.38l-3 5 1.715 1.029 2.523-4.206z" />
+            </svg>
+          </div>
+
+          <div class="box-content">
+            <span class="big">44.51</span>
+            Current price ($)
+          </div>
+        </div>
+
+        <div class="info-box">
+          <div class="box-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+              <path
+                d="M20 10H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V11a1 1 0 0 0-1-1zm-1 10H5v-8h14v8zM5 6h14v2H5zM7 2h10v2H7z" />
+            </svg>
+          </div>
+
+          <div class="box-content">
+            <span class="big">132</span>
+            Related articles
+          </div>
+        </div>
+
+        <div class="info-box active">
+          <div class="box-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+              <path
+                d="M3,21c0,0.553,0.448,1,1,1h16c0.553,0,1-0.447,1-1v-1c0-3.714-2.261-6.907-5.478-8.281C16.729,10.709,17.5,9.193,17.5,7.5 C17.5,4.468,15.032,2,12,2C8.967,2,6.5,4.468,6.5,7.5c0,1.693,0.771,3.209,1.978,4.219C5.261,13.093,3,16.287,3,20V21z M8.5,7.5 C8.5,5.57,10.07,4,12,4s3.5,1.57,3.5,3.5S13.93,11,12,11S8.5,9.43,8.5,7.5z M12,13c3.859,0,7,3.141,7,7H5C5,16.141,8.14,13,12,13z" />
+            </svg>
+          </div>
+
+          <div class="box-content">
+            <span class="big">18</span>
+            Key executives
+          </div>
+        </div>
+
+        <div class="info-box">
+          <div class="box-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+              <path
+                d="M12 3C6.486 3 2 6.364 2 10.5c0 2.742 1.982 5.354 5 6.678V21a.999.999 0 0 0 1.707.707l3.714-3.714C17.74 17.827 22 14.529 22 10.5 22 6.364 17.514 3 12 3zm0 13a.996.996 0 0 0-.707.293L9 18.586V16.5a1 1 0 0 0-.663-.941C5.743 14.629 4 12.596 4 10.5 4 7.468 7.589 5 12 5s8 2.468 8 5.5-3.589 5.5-8 5.5z" />
+            </svg>
+          </div>
+
+          <div class="box-content">
+            <span class="big">24</span>
+            Conversations
+          </div>
+        </div>
+      </section>
+    </div>
+</div>
+</section>
+</div>
+</main>
+</div>
+<style>
+  /* Colors */
+  :root {
+    --white: #fff;
+    --blue: #4b84fe;
+    --colorDark: #1b253d;
+    --colorLight: #99a0b0;
+    --red: #fa5b67;
+    --yellow: #ffbb09;
+    --bg: #f5f5fa;
+    --bgDark: #ede8f0;
+  }
+
+  /* Global Styles */
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    color: var(--colorLight);
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    font-size: 16px;
+    line-height: 120%;
+    font-family: Open Sans, Helvetica, sans-serif;
+  }
+
+  /* Dashboard Layout */
+  .dashboard {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    grid-gap: 0;
+    grid-template-columns: 300px auto;
+    grid-template-rows: 80px auto;
+    grid-template-areas: 'menu search' 'menu content';
+  }
+
+  /* Search Bar */
+  .search-wrap {
+    grid-area: search;
+    background: var(--white);
+    border-bottom: 1px solid var(--bgDark);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 3em;
+  }
+
+  .search {
+    height: 40px;
+  }
+
+  .search label {
+    display: flex;
+    align-items: center;
+    height: 100%;
+  }
+
+  .search label svg {
+    display: block;
+  }
+
+  .search label svg path,
+  .search label svg circle {
+    fill: lighten(var(--colorLight), 10%);
+    transition: fill .15s ease;
+  }
+
+  .search input {
+    display: block;
+    padding-left: 1em;
+    height: 100%;
+    margin: 0;
+    border: 0;
+  }
+
+  .search input:focus {
+    background: var(--bg);
+  }
+
+  .search label:hover svg path,
+  .search label:hover svg circle {
+    fill: lighten(var(--colorDark), 10%);
+  }
+
+  .user-actions button {
+    border: 0;
+    background: none;
+    width: 32px;
+    height: 32px;
+    margin: 0;
+    padding: 0;
+    margin-left: 0.5em;
+  }
+
+  .user-actions button svg {
+    position: relative;
+    top: 2px;
+  }
+
+  .user-actions button svg path,
+  .user-actions button svg circle {
+    fill: lighten(var(--colorLight), 10%);
+    transition: fill .15s ease;
+  }
+
+  .user-actions button:hover svg path,
+  .user-actions button:hover svg circle {
+    fill: lighten(var(--colorDark), 10%);
+  }
+
+  /* Menu */
+  .menu-wrap {
+    grid-area: menu;
+    padding-bottom: 3em;
+    overflow: auto;
+    background: var(--white);
+    border-right: 1px solid var(--bgDark);
+  }
+
+  .user {
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin: 0;
+    padding: 0 3em;
+  }
+
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+  }
+
+  .user-avatar img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  figcaption {
+    margin: 0;
+    padding: 0 0 0 1em;
+    color: var(--colorDark);
+    font-weight: 700;
+    font-size: 0.875em;
+    line-height: 100%;
+  }
+
+  nav {
+    display: block;
+    padding: 0 3em;
+  }
+
+  nav section {
+    display: block;
+    padding: 3em 0 0;
+  }
+
+  nav h3 {
+    margin: 0;
+    font-size: .875em;
+    text-transform: uppercase;
+    color: var(--blue);
+    font-weight: 600;
+  }
+
+  nav ul {
+    display: block;
+    padding: 0;
+    margin: 0;
+  }
+
+  nav li {
+    display: block;
+    padding: 0;
+    margin: 1em 0 0;
+  }
+
+  nav li a {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    color: var(--colorLight);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: .875em;
+    transition: color .15s ease;
+  }
+
+  nav li a svg {
+    display: block;
+    margin-right: 1em;
+  }
+
+  nav li a:hover {
+    color: var(--colorDark);
+  }
+
+  nav li a:hover svg path,
+  nav li a:hover svg circle {
+    fill: lighten(var(--colorDark), 10%);
+  }
+
+  nav li a.active {
+    color: var(--blue);
+  }
+
+  nav li a.active svg path,
+  nav li a.active svg circle {
+    fill: var(--blue);
+  }
+
+  /* Content */
+  .content-wrap {
+    grid-area: content;
+    padding: 3em;
+    overflow: auto;
+  }
+
+  .content-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .content-head h1 {
+    font-size: 1.375em;
+    line-height: 100%;
+    color: var(--colorDark);
+    font-weight: 500;
+    margin: 0;
+    padding: 0;
+  }
+
+  .action button {
+    border: 0;
+    background: var(--blue);
+    color: var(--white);
+    width: auto;
+    height: 3.5em;
+    padding: 0 2.25em;
+    border-radius: 3.5em;
+    font-size: 1em;
+    text-transform: uppercase;
+    font-weight: 600;
+    transition: background-color .15s ease;
+  }
+
+  .action button:hover {
+    background-color: darken(var(--blue), 10%);
+  }
+
+  .action button:active {
+    background-color: darken(var(--blue), 20%);
+    transition: none;
+  }
+
+  .info-boxes {
+    padding: 3em 0 2em;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-gap: 2em;
+  }
+
+  .info-box {
+    background: var(--white);
+    height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 0 3em;
+    border: 1px solid var(--bgDark);
+    border-radius: 5px;
+  }
+
+  .info-box .box-icon svg {
+    display: block;
+    width: 48px;
+    height: 48px;
+  }
+
+  .info-box .box-icon svg path,
+  .info-box .box-icon svg circle {
+    fill: var(--colorLight);
+  }
+
+  .info-box .box-content {
+    padding-left: 1.25em;
+    white-space: nowrap;
+  }
+
+  .info-box .box-content .big {
+    display: block;
+    font-size: 2em;
+    line-height: 150%;
+    color: var(--colorDark);
+  }
+
+  .info-box.active svg circle,
+  .info-box.active svg path {
+    fill: var(--blue);
+  }
+  .hover-effect:hover {
+    /* Add your hover effect properties here */
+    background-color: #eee; /* Example background color */
+    color: #0fba76; /* Example text color */
+}
+.bn{
+  color: black;
+  display: flex;
+}
+</style>
 </body>
+
 </html>

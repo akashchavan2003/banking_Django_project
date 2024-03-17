@@ -1,9 +1,8 @@
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
-from django.contrib import messages
-
+from django.contrib import messages 
+from system.models import MasterTable
 def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('login_username')
@@ -31,31 +30,46 @@ def superuser_login_view(request):
 
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
-
+from django.db import connections
 def signup(request):
     if request.method == 'POST':
-        # Get form data from POST request
-        username = request.POST.get('name')
-        email = request.POST.get('email')
-        position = request.POST.get('position')
-        password = request.POST.get('password')
-        confirm_data = request.POST.get('data')
+        USERNAME = request.POST.get('Name')
+        name = request.POST.get('dir_name')
+        email = request.POST.get('Email')
+        password = request.POST.get('Password')
+        address = request.POST.get('director_address')
+        aadhar = request.POST.get('aadhar_card_number')
+        licence_no = request.POST.get('director_licence_number')
+        bank_name = request.POST.get('bank_name')
+        mobile = request.POST.get('mobile_number')
+        print(USERNAME,email,name,password,address,aadhar,licence_no,bank_name,mobile)
+        if all([USERNAME, email, name, password, address, aadhar, licence_no, bank_name, mobile]):
+            try:
+                # Create user object and save to default database
+                user = User.objects.create_user(username=USERNAME, email=email, password=password)
+                # Save position as the first_name field
+                user.first_name = name
+                user.save()
 
-        # Check if all required fields are provided
-        if username and email and position and password:
-            # Create user object and save to database
-            user = User.objects.create_user(username=username, email=email, password=password)
-            # Save position as a custom field (you can use 'first_name' for this purpose)
-            user.first_name = position
-            user.save()
-            # Render the signup.html template with a success message
-            return render(request, 'signup.html', {'success_message': 'User created successfully!'})
-    
-    # If form submission fails or it's a GET request, prints the fails msg
-    print("fails..")
+                # Switch to the other database
+                with connections['other_database'].cursor() as cursor:
+                    cursor.execute(
+    "INSERT INTO master_table (username, dir_name, password, email_id, mo_no, licence_no, aadhar, address, bank_name) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+    [USERNAME, name, password, email, int(mobile), int(licence_no), int(aadhar), address, bank_name]
+)
+
+
+                success_message = 'User created successfully!'
+                return render(request, 'signup.html', {'success_message': success_message})
+            except Exception as e:
+                error_message = f'An error occurred: {str(e)}'
+                return render(request, 'signup.html', {'error_message': error_message})
+        else:
+            error_message = 'Incomplete form data. Please fill in all required fields.'
+            return render(request, 'signup.html', {'error_message': error_message})
+
+    # If form submission fails or it's a GET request, render the signup.html template
     return render(request, 'signup.html')
-    
-
 
 
 def empty_login_view(request):
@@ -63,5 +77,19 @@ def empty_login_view(request):
 
 def regular_user_login(request):
     return render(request, 'login.html')
+
 def home_view(request):
-    return render(request,'home.html')
+    # Get the username of the currently logged-in user
+    user = request.user.username
+    
+    try:
+        # Query the MasterTable model to get the record for the current user from the other database
+        master_record = MasterTable.objects.using('other_database').get(username=user)
+        bank_name = str(master_record.bank_name).upper()
+        dir_name = str(master_record.dir_name).upper()
+
+    except MasterTable.DoesNotExist:
+        bank_name = None
+        dir_name = None
+
+    return render(request, 'home.html', {'name': bank_name, 'dir_name': dir_name})
