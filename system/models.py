@@ -2,7 +2,7 @@ from django.db import models
 from django.core.validators import MinValueValidator
 
 class CashInHand(models.Model):
-    username = models.CharField(max_length=50, primary_key=True)
+    username = models.CharField(max_length=50,primary_key=True)
     cash_in_hand = models.IntegerField(validators=[MinValueValidator(0)])
 
     class Meta:
@@ -13,7 +13,7 @@ class CashTransaction(models.Model):
     transaction_type = models.CharField(max_length=255)
     date = models.CharField(max_length=255)
     amt = models.IntegerField()
-    cash_in_hand_previous = models.CharField(max_length=255)
+    cash_in_hand_previous = models.CharField(max_length=255,default='N')
     voucher_no = models.IntegerField()
     frm_ac_no = models.IntegerField()
     to_ac_no = models.IntegerField()

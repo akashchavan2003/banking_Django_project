@@ -24,5 +24,8 @@ urlpatterns = [
     path('system/', include('system.urls')),  # Include system app URLs (if necessary)
     path('signup/', views.signup, name='signup'),  # URL for signup form
     path('login/', views.login_view, name='login'),  # URL for regular user login
-
+    path('check_ac_bal/', views.check_ac_bal, name='check_ac_bal'),
+    path('trf_page/', views.trf, name='trf'),
+    path('credit/', views.credit, name='credit'),
+    path('debit/', views.debit, name='debit'),
 ]

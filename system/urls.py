@@ -21,6 +21,9 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('superuser_login/', views.superuser_login_view, name='superuser_login'),
     path('signup/', views.signup, name='signup'),
-    path('home/', views.home_view, name='home')
-    # Other URLs specific to the system app
+    path('home/', views.home_view, name='home'),
+    path('debit/', views.debit, name='debit'),
+    path('check_ac_bal/', views.check_ac_bal, name='check_ac_bal'),
+    path('trf_page/', views.trf, name='trf_page'),
+    path('credit/', views.credit, name='credit'),  # Add this line
 ]

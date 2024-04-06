@@ -8,7 +8,9 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment
 from openpyxl.utils.dataframe import dataframe_to_rows
 from datetime import datetime, timedelta
-
+from django.db import connections,transaction
+from system.models import PersonalBankAccount,CashTransaction,CashInHand
+from django.db.models import F
 logging.basicConfig(
     level=logging.DEBUG,  # Set the minimum logging level
     format="%(asctime)s - %(levelname)s - %(message)s"  # Define the format of log messages
@@ -47,26 +49,20 @@ def add_days_to_date(date_string, days_to_add):
 
 
 def ac_availability(ann):
-    temp = False
     try:
-        c2 = sqlite3.connect("bank_manage.db")
-        try:
-            cc5 = c2.cursor()
-            q6 = "SELECT account_number FROM personal_bank_account"
-            cc5.execute(q6)
-            r9 = cc5.fetchall()
-            for row in r9:
-                if row[0] == ann:
-                    temp = True
-                    break
-            return temp
-        except sqlite3.Error as e:
-            logging.info("Error while getting details", e)
-    except:
-        logging.warning("Error while connecting to database")
-    finally:
-        if c2 in locals():
-            c2.close()
+        database_name='other_database'
+        with connections[database_name].cursor() as cursor:
+            cursor.execute("SELECT COUNT(*) FROM personal_bank_account WHERE account_number = %s", [ann])
+            row = cursor.fetchone()
+            if row[0] > 0:
+                return True
+            else:
+                return False
+            
+    except Exception as e:
+        # Handle any exceptions (e.g., database connection errors)
+        logging.warning("Error while checking account availability:", e)
+        return False
 
 
 def download_sta():
@@ -98,12 +94,31 @@ def download_sta():
         print("Account number", an7, "is not found please try again!...")
 
 
-def save_transaction(account=None, transaction_t=None, dt7=None, a1=None, cih=None, vn=None, fan=None, tan=None):
-    com1 = sqlite3.connect("bank_manage.db")
-    com1.execute("""INSERT INTO cash_transaction(ac_no, transaction_type, date, amt, cash_in_hand_previous,voucher_no,frm_ac_no,to_ac_no) 
-                                                 VALUES (?, ?, ?, ?, ?,?,?,?)""",
-                 (account, transaction_t, dt7, a1, cih, vn, fan, tan))
-    com1.commit()
+
+def save_transaction(account=None, transaction_t=None, dt7=None, a1=None, cih=None, vn=None, fan=0, tan=0, user=None):
+    try:
+        print("Initializing save transaction")
+        # Create a CashTransaction object
+        cash_in_hand_instance = CashInHand.objects.using('other_database').get(username=user)
+        cash_in_hand_previous = (cash_in_hand_instance.cash_in_hand)
+        
+        
+        transaction = CashTransaction(
+            ac_no=account,
+            transaction_type=transaction_t,
+            date=dt7,
+            amt=a1,
+            cash_in_hand_previous=cash_in_hand_previous,
+            voucher_no=vn,
+            frm_ac_no=fan,
+            to_ac_no=tan,
+            username=user
+        )
+        # Save the transaction object to the database
+        transaction.save()
+        print("Completed save transaction")
+    except Exception as e:
+        logging.error("Error occurred while saving transaction: %s", e)
 
 
 def revoke_transaction():
@@ -183,17 +198,19 @@ def revoke_transaction():
 
 
 def get_voucher_no():
+    database_name = 'other_database'  # Set the database name here
     try:
-        conn = sqlite3.connect("bank_manage.db")
-        cursor = conn.cursor()
-        vn = cursor.execute("SELECT voucher_no FROM other")
-        vn1 = vn.fetchone()
-        conn.close()
-        return vn1[0] if vn1 else None
-    except sqlite3.Error as e:
-        logging.error("Error fetching voucher number: %s", e)
+        with connections[database_name].cursor() as cursor:
+            try:
+                cursor.execute("SELECT voucher_no FROM other")
+                vn1 = cursor.fetchone()
+                return vn1[0] if vn1 else None
+            except Exception as e:
+                logging.error("Error fetching voucher number: %s", e)
+                return None
+    except Exception as e:
+        logging.warning("Error connecting to the database: %s", e)
         return None
-
 
 def create_ac():
     # it creates the account no in the database by using simple query INSERT
@@ -218,8 +235,9 @@ def create_ac():
 class Customer:
     # This class is separately for Editing the customer personal information only
     # it gives parameter by using its constructor is only a account no.
-    def __init__(self, an0):
+    def __init__(self, an0,user):
         self.an = an0
+        self.user=user
 
     def change_pan(self):
         pn = input("Enter pan card Number to Update")
@@ -250,55 +268,71 @@ class Customer:
 
     def get_balance(self):
         try:
-            con = sqlite3.connect("bank_manage.db")
-            cur = con.cursor()
-            q = "SELECT balance FROM personal_bank_account WHERE account_number=?"
-            cur.execute(q, (self.an,))
-            result2 = cur.fetchone()
-            con.close()  # Move connection closure after fetching the result
-            return result2[0] if result2 else None
-        except sqlite3.Error as e:
+            # Query the PersonalBankAccount table using the account_number and username
+            account = PersonalBankAccount.objects.using('other_database').get(account_number=self.an, username=self.user)
+            return account.balance  # Return the balance from the retrieved account
+        except PersonalBankAccount.DoesNotExist:
+            logging.warning("No balance found for account number %s and username %s", self.an, self.username)
+            return None
+        except Exception as e:
             logging.error("Error fetching balance: %s", e)
             return None
+
 
 
 class Wallet:
     # This class is for only purpose of handling cash in hand transaction
     # this class get initial amt amount that we give by fetching from our database at the time of calling
     # Firstly its return the cash in hand or Another function set the cash in hand
-    def __init__(self, set_amt):
+    def __init__(self, set_amt,user,cih):
         self.set_amt = set_amt
+        self.user=user
+        self.cih=cih
 
     def cash_in_hand_return(self):
         return self.set_amt
 
     def cash_in_hand_deposit(self):
         try:
-            con3 = sqlite3.connect("bank_manage.db")
-            try:
-                q = "UPDATE cash_in_hand SET cash_in_hand=cash_in_hand + ?"
-                con3.execute(q, (self.set_amt,))
-                con3.commit()
-                con3.close()
-            except sqlite3.Error as e:
-                con3.rollback()
-                logging.info("Transaction Failed.....", e)
-        except sqlite3.OperationalError:
-            logging.warning("Error while connecting to database")
+            print("in cih")
+            # Update the cash_in_hand field for the specified username
+            query = """
+                UPDATE cash_in_hand
+                SET cash_in_hand = %s
+                WHERE username = %s
+            """
+            # Execute the raw SQL query with the provided parameters
+            print("connecting to database..")
+            with connections['other_database'].cursor() as cursor:
+                print("excuting query")
+                cursor.execute(query, [self.set_amt, self.user])
+                print("query excutes")
+                transaction.commit()
+                print("transaction complete")
+            return True  # Return True if the update is successful
+        except CashInHand.DoesNotExist:
+            print("cash in hand does not exist")
+            # Handle the case where the record does not exist for the provided username
+            return False
+        except Exception as e:
+            # Handle other exceptions
+            print("Error updating cash_in_hand:", e)
+            return False
+
+            
 
     def cash_in_hand_withdraw(self):
+        database_name = 'other_database' 
         try:
-            con3 = sqlite3.connect("bank_manage.db")
-            try:
-                q = "UPDATE cash_in_hand SET cash_in_hand=cash_in_hand - ?"
-                con3.execute(q, (self.set_amt,))
-                con3.commit()
-                con3.close()
-            except sqlite3.Error as e:
-                con3.rollback()
-                logging.info("Transaction was failed...", e)
-        except sqlite3.Error as error:
-            logging.warning("Error while connecting to Database...")
+            with connections[database_name].cursor() as cursor:
+                try:
+                    q = "UPDATE cash_in_hand SET cash_in_hand = cash_in_hand - ? WHERE username = ?"
+                    cursor.execute(q, [self.set_amt, str(self.user)])
+                    self.connection.commit()
+                except Exception as e:
+                     logging.error("Transaction Failed: {}".format(e))
+        except Exception as e:
+            logging.warning("Error while connecting to database %s", e)
 
 
 class Account:
@@ -306,75 +340,66 @@ class Account:
     # inherits the class Wallet in it Class Wallet have an one argument called initial Class Account have one
     # argument called an Account number Because of this argument or Inheritance we have to call a base class
     # constructor manually that why pythons allowed to call a manual constructor
-    def __init__(self, an2, amt6):
+    def __init__(self, an2, amt6,user):
         self.amt2 = amt6
         self.an2 = an2
+        self.user=user
 
     def deposit(self):
-        # Here we have to deposit cash in customers balance so we have to do firstly give an ac no. to class then give
-        # amt to the member function and the class wallet get its their initialized value from the fetching if else by
-        # fetching from database so now only we have to do adding and subtraction logic in the member function for
-        # respective
+        database_name = 'other_database'  
         try:
-            con4 = sqlite3.connect("bank_manage.db")
-            try:
-                q1 = "UPDATE personal_bank_account SET balance=balance + ? WHERE account_number = ?"
-                Q2 = "UPDATE other SET voucher_no=voucher_no+1"
-                con4.execute(q1, (self.amt2, self.an2))
-                con4.execute(Q2)
-                con4.commit()
-                ob = Wallet(self.amt2)
-                vn = int(get_voucher_no())
-                ob.cash_in_hand_deposit()
-                if vn is not None:
-                    logging.info("Amount deposited to AC NO.%s voucher no is.%s", self.an2, vn + 1)
-                else:
-                    logging.warning("Error while getting to fetch voucher no.")
-                ob = Customer(self.an2)
-                ab = ob.get_balance()
-                dt = get_current_date()
-                tt = "CASH DEPOSIT"
-                save_transaction(self.an2, tt, dt, self.amt2, ab - self.amt2, vn)  # Calling the function
-            except sqlite3.Error as e:
-                if con4 is not None:
-                    con4.rollback()
-                logging.info("Transaction failed:", e)
-        except sqlite3.Error as e:
-            logging.warning("Database connection failed....", e)
-        finally:
-            if 'con4' and 'com1' in locals():
-                con4.close()
+            with connections[database_name].cursor() as cursor:
+                try:
+                    q1 = "UPDATE personal_bank_account SET balance = balance + %s WHERE account_number = %s"
+                    Q2 = "UPDATE other SET voucher_no = voucher_no + 1"
+                    cursor.execute(q1, (self.amt2, self.an2))
+                    cursor.execute(Q2)
+                    vn = get_voucher_no()
+                    if vn is not None:
+                        logging.info("Amount deposited to AC NO.%s voucher no is.%s", self.an2, vn + 1)
+                        # ob = Customer(self.an2,self.user)
+                        # ab = ob.get_balance()
+                        dt = get_current_date()
+                        tt = "CASH DEPOSIT"
+                        if self.an2 is not None and tt is not None and dt is not None and self.amt2 is not None and vn is not None and self.user is not None:
+                             save_transaction(account=int(self.an2), transaction_t=str(tt),dt7=str(dt), a1=int(self.amt2), vn=int(vn), user=str(self.user))
+                        else:
+                            print("error in the deposit")
+                        return True, int(int(vn) + 1)
+                    else:
+                        logging.warning("Error while fetching voucher no.")
+                except Exception as e:
+                    logging.error("Transaction failed deposit: %s", e)
+        except Exception as e:
+            logging.warning("Database connection failed: %s", e)
+                
+                   
 
     def withdraw(self):
+        database_name = 'other_database'  
         try:
-            con6 = sqlite3.connect("bank_manage.db")
-            try:
-                q1 = "UPDATE personal_bank_account SET balance=balance - ? WHERE account_number = ?"
-                Q2 = "UPDATE other SET voucher_no=voucher_no+1"
-                con6.execute(q1, (self.amt2, self.an2))
-                con6.execute(Q2)
-                con6.commit()
-                ob = Wallet(self.amt2)
-                ob.cash_in_hand_withdraw()
-                vn = int(get_voucher_no())
-                if vn is not None:
-                    logging.info("Amount Withdrawn from AC NO.%s and voucher no is.%s", self.an2, vn + 1)
-                else:
-                    logging.warning("Error while getting voucher no.")
-                ob = Customer(self.an2)
-                ab = ob.get_balance()
-                dt = get_current_date()
-                tt = "CASH WITHDRAW"
-                save_transaction(self.an2, tt, dt, self.amt2, ab - self.amt2, vn)  # Calling the function
-            except sqlite3.Error as e:
-                if con6 is not None:
-                    con6.rollback()
-                logging.info("Transaction Failed", e)
-        except sqlite3.OperationalError as e:
-            logging.info("Error while connecting to database...", e)
-        finally:
-            if 'con6' in locals():
-                con6.close()
+            with connections[database_name].cursor() as cursor:
+                try:
+                    q1 = "UPDATE personal_bank_account SET balance=balance - %s WHERE account_number = %s"
+                    Q2 = "UPDATE other SET voucher_no=voucher_no+1"
+                    cursor.execute(q1, (self.amt2, self.an2))
+                    cursor.execute(Q2)
+                    vn = get_voucher_no()
+                    if vn is not None:
+                        logging.info("Amount deposited to AC NO.%s voucher no is.%s", self.an2, vn + 1)
+                        ob = Customer(self.an2)
+                        ab = ob.get_balance()
+                        dt = get_current_date()
+                        tt = "CASH WITHDRAWL"
+                        save_transaction(int(self.an2), str(tt), str(dt), int(self.amt2), int(ab) ,int(self.amt2), int(vn+1), str(self.user) )
+                        return True,int(vn+1)
+                    else:
+                        logging.warning("Error while fetching voucher no.") # Call the function
+                except Exception as e:
+                    logging.error("Transaction failed: %s", e)
+        except Exception as e:
+            logging.warning("Database connection failed: %s", e)
+                
 
     def change_balance(self, amt2):
         pass

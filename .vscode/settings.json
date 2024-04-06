@@ -1,5 +1,7 @@
 {
     "python.REPL.enableREPLSmartSend": false,
     "livePreview.defaultPreviewPath": "/templates/home.html",
-    "liveServer.settings.multiRootWorkspaceName": "banking"
+    "liveServer.settings.multiRootWorkspaceName": "banking",
+    "python.analysis.typeCheckingMode": "off",
+    "python.analysis.autoImportCompletions": true
 }
