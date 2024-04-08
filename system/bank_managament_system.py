@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from django.db import connections,transaction
 from system.models import PersonalBankAccount,CashTransaction,CashInHand
 from django.db.models import F
+from django.http import HttpResponse
 logging.basicConfig(
     level=logging.DEBUG,  # Set the minimum logging level
     format="%(asctime)s - %(levelname)s - %(message)s"  # Define the format of log messages
@@ -98,17 +99,15 @@ def download_sta():
 def save_transaction(account=None, transaction_t=None, dt7=None, a1=None, cih=None, vn=None, fan=0, tan=0, user=None):
     try:
         print("Initializing save transaction")
-        # Create a CashTransaction object
-        cash_in_hand_instance = CashInHand.objects.using('other_database').get(username=user)
-        cash_in_hand_previous = (cash_in_hand_instance.cash_in_hand)
-        
+        if cih is None:
+            raise ValueError("cash_in_hand_previous (cih) cannot be None")
         
         transaction = CashTransaction(
             ac_no=account,
             transaction_type=transaction_t,
             date=dt7,
             amt=a1,
-            cash_in_hand_previous=cash_in_hand_previous,
+            cash_in_hand_previous=cih,
             voucher_no=vn,
             frm_ac_no=fan,
             to_ac_no=tan,
@@ -117,9 +116,16 @@ def save_transaction(account=None, transaction_t=None, dt7=None, a1=None, cih=No
         # Save the transaction object to the database
         transaction.save()
         print("Completed save transaction")
+    except ValueError as ve:
+        logging.error("ValueError in save_transaction: %s", ve)
+    except KeyError as ke:
+        logging.error("KeyError in save_transaction: %s", ke)
+    except AttributeError as ae:
+        logging.error("AttributeError in save_transaction: %s", ae)
+    except TypeError as te:
+        logging.error("TypeError in save_transaction: %s", te)
     except Exception as e:
         logging.error("Error occurred while saving transaction: %s", e)
-
 
 def revoke_transaction():
     global res1
@@ -292,7 +298,8 @@ class Wallet:
     def cash_in_hand_return(self):
         return self.set_amt
 
-    def cash_in_hand_deposit(self):
+    def cash_in_hand_handle (self):
+
         try:
             print("in cih")
             # Update the cash_in_hand field for the specified username
@@ -317,22 +324,7 @@ class Wallet:
         except Exception as e:
             # Handle other exceptions
             print("Error updating cash_in_hand:", e)
-            return False
-
-            
-
-    def cash_in_hand_withdraw(self):
-        database_name = 'other_database' 
-        try:
-            with connections[database_name].cursor() as cursor:
-                try:
-                    q = "UPDATE cash_in_hand SET cash_in_hand = cash_in_hand - ? WHERE username = ?"
-                    cursor.execute(q, [self.set_amt, str(self.user)])
-                    self.connection.commit()
-                except Exception as e:
-                     logging.error("Transaction Failed: {}".format(e))
-        except Exception as e:
-            logging.warning("Error while connecting to database %s", e)
+            return False      
 
 
 class Account:
@@ -342,63 +334,128 @@ class Account:
     # constructor manually that why pythons allowed to call a manual constructor
     def __init__(self, an2, amt6,user):
         self.amt2 = amt6
-        self.an2 = an2
+        self.an2 = int(an2)
         self.user=user
 
-    def deposit(self):
+    def Deposit(self):
         database_name = 'other_database'  
         try:
-            with connections[database_name].cursor() as cursor:
-                try:
-                    q1 = "UPDATE personal_bank_account SET balance = balance + %s WHERE account_number = %s"
-                    Q2 = "UPDATE other SET voucher_no = voucher_no + 1"
-                    cursor.execute(q1, (self.amt2, self.an2))
-                    cursor.execute(Q2)
-                    vn = get_voucher_no()
-                    if vn is not None:
-                        logging.info("Amount deposited to AC NO.%s voucher no is.%s", self.an2, vn + 1)
-                        # ob = Customer(self.an2,self.user)
-                        # ab = ob.get_balance()
-                        dt = get_current_date()
-                        tt = "CASH DEPOSIT"
-                        if self.an2 is not None and tt is not None and dt is not None and self.amt2 is not None and vn is not None and self.user is not None:
-                             save_transaction(account=int(self.an2), transaction_t=str(tt),dt7=str(dt), a1=int(self.amt2), vn=int(vn), user=str(self.user))
-                        else:
-                            print("error in the deposit")
-                        return True, int(int(vn) + 1)
-                    else:
-                        logging.warning("Error while fetching voucher no.")
-                except Exception as e:
-                    logging.error("Transaction failed deposit: %s", e)
+            with transaction.atomic(using=database_name):
+                with connections[database_name].cursor() as cursor:
+                    try:
+                        q1 = "UPDATE personal_bank_account SET balance=balance + %s WHERE account_number = %s"
+                        Q2 = "UPDATE other SET voucher_no=voucher_no+1"
+                        cursor.execute(q1, (self.amt2, self.an2))
+                        cursor.execute(Q2)
+                        try:
+                            # getting cash in hand details by orm
+                            print("getting cash in hand ")
+                            cash_in_hand_instance = CashInHand.objects.using('other_database').get(username=self.user)
+                            cash_in_hand = int(cash_in_hand_instance.cash_in_hand)
+                            print(cash_in_hand)
+                            print("Seeting amt")
+                            set_amt=int(cash_in_hand)+int(self.amt2)
+                            print("amt set and is:",set_amt)
+                            try:
+                                print("creating obj of the wallet")
+                                w1=Wallet(set_amt=set_amt,user=self.user,cih=cash_in_hand)
+                                print("calling cash in handle")
+                                v=w1.cash_in_hand_handle()
+                                vn = get_voucher_no()
+
+                                # this is for only saving the transactions purpose only
+                                if vn is not None:
+                                    logging.info("Amount Credited To AC NO.%s voucher no is.%s", self.an2, vn + 1)
+                                    print("creating obj of customer")
+                                    ob = Customer(self.an2,self.user)
+                                    print("getting balance")
+                                    ab = ob.get_balance()
+                                    print("getting date")
+                                    dt = get_current_date()
+                                    tt = "CASH WITHDRAWL"
+                                    print("calling save transaction")
+                                    save_transaction(account=int(self.an2), transaction_t=str(tt), dt7=str(dt), a1=int(self.amt2), cih=int(cash_in_hand), vn=int(vn+1), user=str(self.user) )
+                                    print("called completet to save transaction")
+                                    return True,int(vn+1)
+                                else:
+                                    logging.warning("Error while fetching voucher no.")
+                            except Exception as e:
+                                transaction.rollback(using=database_name)
+                                print("error while calling cash in handle",e)
+                        except Exception as e:
+                                    transaction.rollback(using=database_name)
+                                    print(e)
+                                    return HttpResponse("error while getting cash in details",e)
+                    except Exception as e:
+                        transaction.rollback(using=database_name)
+                        logging.error("Transaction failed: %s", e)
         except Exception as e:
-            logging.warning("Database connection failed: %s", e)
+            # Rollback the transaction in case of error
+            transaction.rollback(using=database_name)
+            logging.error("Transaction failed: %s", e)
+            return HttpResponse("Transaction failed: {}".format(e))
                 
                    
 
     def withdraw(self):
+        print("in deposit")
         database_name = 'other_database'  
         try:
-            with connections[database_name].cursor() as cursor:
-                try:
-                    q1 = "UPDATE personal_bank_account SET balance=balance - %s WHERE account_number = %s"
-                    Q2 = "UPDATE other SET voucher_no=voucher_no+1"
-                    cursor.execute(q1, (self.amt2, self.an2))
-                    cursor.execute(Q2)
-                    vn = get_voucher_no()
-                    if vn is not None:
-                        logging.info("Amount deposited to AC NO.%s voucher no is.%s", self.an2, vn + 1)
-                        ob = Customer(self.an2)
-                        ab = ob.get_balance()
-                        dt = get_current_date()
-                        tt = "CASH WITHDRAWL"
-                        save_transaction(int(self.an2), str(tt), str(dt), int(self.amt2), int(ab) ,int(self.amt2), int(vn+1), str(self.user) )
-                        return True,int(vn+1)
-                    else:
-                        logging.warning("Error while fetching voucher no.") # Call the function
-                except Exception as e:
-                    logging.error("Transaction failed: %s", e)
+            with transaction.atomic(using=database_name):
+                with connections[database_name].cursor() as cursor:
+                    try:
+                        q1 = "UPDATE personal_bank_account SET balance=balance - %s WHERE account_number = %s"
+                        Q2 = "UPDATE other SET voucher_no=voucher_no+1"
+                        cursor.execute(q1, (self.amt2, self.an2))
+                        cursor.execute(Q2)
+                        try:
+                            # getting cash in hand details by orm
+                            print("getting cash in hand ")
+                            cash_in_hand_instance = CashInHand.objects.using('other_database').get(username=self.user)
+                            cash_in_hand = int(cash_in_hand_instance.cash_in_hand)
+                            print(cash_in_hand)
+                            print("Seeting amt")
+                            set_amt=int(cash_in_hand)-int(self.amt2)
+                            print("amt set and is:",set_amt)
+                            try:
+                                print("creating obj of the wallet")
+                                w1=Wallet(set_amt=set_amt,user=self.user,cih=cash_in_hand)
+                                print("calling cash in handle")
+                                v=w1.cash_in_hand_handle()
+                                vn = get_voucher_no()
+
+                                # this is for only saving the transactions purpose only
+                                if vn is not None:
+                                    logging.info("Amount Debited From AC NO.%s voucher no is.%s", self.an2, vn + 1)
+                                    print("creating obj of customer")
+                                    ob = Customer(self.an2,self.user)
+                                    print("getting balance")
+                                    ab = ob.get_balance()
+                                    print("getting date")
+                                    dt = get_current_date()
+                                    tt = "CASH WITHDRAWL"
+                                    print("calling save transaction")
+                                    save_transaction(account=int(self.an2), transaction_t=str(tt), dt7=str(dt), a1=int(self.amt2), cih=int(cash_in_hand), vn=int(vn+1), user=str(self.user) )
+                                    print("called completet to save transaction")
+                                    return True,int(vn+1)
+                                else:
+                                    logging.warning("Error while fetching voucher no.")
+                            except Exception as e:
+                                transaction.rollback(using=database_name)
+                                print("error while calling cash in handle",e)
+                        except Exception as e:
+                                    transaction.rollback(using=database_name)
+                                    print(e)
+                                    return HttpResponse("error while getting cash in details",e)
+                    except Exception as e:
+                        transaction.rollback(using=database_name)
+                        logging.error("Transaction failed: %s", e)
         except Exception as e:
-            logging.warning("Database connection failed: %s", e)
+            # Rollback the transaction in case of error
+            transaction.rollback(using=database_name)
+            logging.error("Transaction failed: %s", e)
+            return HttpResponse("Transaction failed: {}".format(e))    
+     
                 
 
     def change_balance(self, amt2):

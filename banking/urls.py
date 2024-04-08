@@ -28,4 +28,6 @@ urlpatterns = [
     path('trf_page/', views.trf, name='trf'),
     path('credit/', views.credit, name='credit'),
     path('debit/', views.debit, name='debit'),
+    path('create_account/',views.create_account,name='create_account'), 
+
 ]

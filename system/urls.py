@@ -25,5 +25,6 @@ urlpatterns = [
     path('debit/', views.debit, name='debit'),
     path('check_ac_bal/', views.check_ac_bal, name='check_ac_bal'),
     path('trf_page/', views.trf, name='trf_page'),
-    path('credit/', views.credit, name='credit'),  # Add this line
+    path('credit/', views.credit, name='credit'), 
+    path('create_account/',views.create_account,name='create_account'), # Add this line
 ]

@@ -113,35 +113,10 @@ def credit(request):
                 if bank_managament_system.ac_availability(ac_no):
                     a1=bank_managament_system.Account(ac_no,amt,user)
                     try:
-                        chk=a1.deposit()
-                        print(chk[0],chk[1])
-                        if chk[0]:
-                            try:
-                            # getting cash in hand details by orm
-                                print("getting cash in hand ")
-                                cash_in_hand_instance = CashInHand.objects.using('other_database').get(username=user)
-                                cash_in_hand = (cash_in_hand_instance.cash_in_hand)
-                                print(cash_in_hand)
-                            except:
-                                print("error while getting cash in hand info")
-                                return HttpResponse("Error while getting cash in hand info")
-                            #adding cash in hand + amt to set or update
-                            set_amt=int(cash_in_hand)+int(amt)
-                            print(set_amt)
-                            try:
-                                print("creating objct of wallet class")
-                                w1=bank_managament_system.Wallet(set_amt=set_amt,user=user,cih=cash_in_hand)
-                                print("calling cash in deposit")
-                                v=w1.cash_in_hand_deposit()
-                                print(v)
-                                if v:
-                                  print("amt deposited")
-                            except Exception as e:
-                                return HttpResponse("error in adding cash in hand operations",e)
-                        else:
-                            print("normal deposit not works")
+                        chk=a1.Deposit()
+
                     except Exception as e :
-                        print("error occured ",e)   
+                        print("error occured in deposit function ",e)   
                 else:
                     return HttpResponse("Account not found")
             except Exception as e:
@@ -171,7 +146,48 @@ def credit(request):
 
 
 def debit(request):
+   user = request.user.username
+   if 'submit_button' in request.POST:
+            ac_no=request.POST.get("account_number0")
+            amt=request.POST.get("amount")
+            print(ac_no,amt)
+            try:
+                #Checking account avilability
+                if bank_managament_system.ac_availability(ac_no):
+                    a1=bank_managament_system.Account(ac_no,amt,user)
+                    try:
+                        chk=a1.withdraw()
+
+                    except Exception as e :
+                        print("error occured in deposit function ",e)   
+                else:
+                    return HttpResponse("Account not found")
+            except Exception as e:
+                return HttpResponse("Deposit failed",e)
+   if 'check_button' in request.POST:
+            print("Button check clicked")
+            ac_no = request.POST.get('account_number')
+            if bank_managament_system.ac_availability(ac_no):
+                try:
+                    with connections['other_database'].cursor() as cursor:
+                        cursor.execute("SELECT account_holder_name, balance FROM personal_bank_account WHERE account_number = %s", [ac_no])
+                        row = cursor.fetchone()
+                        if row:
+                            ac_name, ac_bal = row
+                            return render(request, 'debit.html', {'account_holder_name': ac_name, 'account_balance': ac_bal})
+                        else:
+                            return HttpResponse("No account found with the provided account number.")
+                except Exception as e:
+                    # Handle database query or other errors
+                    print("Error:", e)
+                    return HttpResponse("Error occurred while fetching account holder name.")
+            else:
+                print("Account not found")
+                return HttpResponse("Account not found.")
    return render(request,'debit.html')
 
 def trf(request):
    return render(request,'trf.html')
+
+def create_account(request):
+    return render(request,'create_account.html')

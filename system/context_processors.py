@@ -1,4 +1,7 @@
 from system.models import MasterTable
+# this is for the updating all templates from the database 
+# like all the extending the base.html are all updates through this context_processors.py
+# we can add more like this content in this
 def custom_context(request):
     user = request.user.username
     try:

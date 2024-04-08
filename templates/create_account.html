@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>replit</title>
+  <link href="style.css" rel="stylesheet" type="text/css" />
+</head>
+      <title>Create Bank Account</title>
+      <style>
+          /* Add your CSS styles here */
+      </style>
+  </head>
+  <body>
+      <h1>Create Bank Account</h1>
+      <form id="account-form" method="post" action="{% url 'create_account' %}">
+          {% csrf_token %}
+          <div>
+              <label for="account_number">Account Number:</label>
+              <input type="text" id="account_number" name="account_number" required>
+          </div>
+          <div>
+              <label for="account_holder_name">Account Holder Name:</label>
+              <input type="text" id="account_holder_name" name="account_holder_name" required>
+          </div>
+          <div>
+              <label for="balance">Balance:</label>
+              <input type="number" id="balance" name="balance" step="0.01" required>
+          </div>
+          <div>
+              <label for="account_type">Account Type:</label>
+              <select id="account_type" name="account_type" required>
+                  <option value="">Select Account Type</option>
+                  <option value="savings">Savings</option>
+                  <option value="current">Current</option>
+                  <!-- Add more account types as needed -->
+              </select>
+          </div>
+          <div>
+              <label for="opening_date">Opening Date:</label>
+              <input type="date" id="opening_date" name="opening_date" required>
+          </div>
+          <div>
+              <label for="address">Address:</label>
+              <textarea id="address" name="address" required></textarea>
+          </div>
+          <div>
+              <label for="mobile_number">Mobile Number:</label>
+              <input type="tel" id="mobile_number" name="mobile_number" pattern="[0-9]{10}" required>
+          </div>
+          <div>
+              <label for="aadhar_card_number">Aadhar Card Number:</label>
+              <input type="text" id="aadhar_card_number" name="aadhar_card_number" pattern="[0-9]{12}" required>
+          </div>
+          <div>
+              <label for="pan_card_number">PAN Card Number:</label>
+              <input type="text" id="pan_card_number" name="pan_card_number" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" required>
+          </div>
+          <div>
+              <label for="username">Username:</label>
+              <input type="text" id="username" name="username" required>
+          </div>
+          <button type="submit">Create Account</button>
+      </form>
+
+      <script>
+          // Add your JavaScript code here if needed
+      </script>
+  </body>
+  </html>
+  <style>
+    <style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f2f2f2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    max-width: 600px;
+    width: 100%;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 5px;
+    color: #555;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="tel"],
+textarea,
+select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    background-color: #f9f9f9;
+    transition: border-color 0.3s ease;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="date"]:focus,
+input[type="tel"]:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: #6c63ff;
+}
+
+button[type="submit"] {
+    background-color: #6c63ff;
+    color: #fff;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button[type="submit"]:hover {
+    background-color: #5850ec;
+}
+  </style>
+{% endblock %}
