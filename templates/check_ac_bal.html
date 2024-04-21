@@ -1,7 +1,124 @@
 {% extends 'base.html' %}
 {% block content %}
-    <!-- Add your content for this specific template here -->
-    <div class="example-content">
-        <h4>A/c balance sectionn</h4>
+<style>
+    /* Add your custom CSS styles here */
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+        color: #333;
+        margin: 0;
+        padding: 0;
+    }
+    .container {
+        max-width: 800px;
+        margin: 20px auto;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin-top: 10px;
+    }
+    .c{
+        max-width:80%;
+        margin: 20px auto;
+        background-color: #cb5d5d;
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 10px;
+        height: 5vh;
+    }
+    h1 {
+        color: #007bff;
+        text-align: center;
+    }
+    form {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+    input[type="text"] {
+        padding: 10px;
+        width: 100%; /* Make input field full width */
+        max-width: 300px; /* Limit maximum width */
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        outline: none;
+    }
+    input[type="submit"] {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+    input[type="submit"]:hover {
+        background-color: #0056b3;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th, td {
+        padding: 10px;
+        border-bottom: 1px solid #ccc;
+        text-align: left;
+    }
+    th {
+        background-color: #007bff;
+        color: #fff;
+    }
+
+    /* Responsive Styles */
+    @media only screen and (max-width: 600px) {
+        /* Adjust styles for smaller screens */
+        .container {
+            padding: 10px;
+        }
+        input[type="text"] {
+            width: 100%;
+            max-width: none;
+        }
+    }
+    .message{
+        display: flex;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+    
+    .message h3{
+      color: red;
+      align-content: center;
+    }
+</style>
+</head>
+<body>
+    {% if msg %}
+    <div class="message">
+        <h3>{{msg}}</h3>
     </div>
+{% endif %}
+<div class="container">
+    <h1>Check AC Balance</h1>
+    <form method="POST">
+        {% csrf_token %}
+        <input type="text" name="account_number" placeholder="Enter Account Number">
+        <input type="submit" value="Search">
+    </form>
+    {% if customer %}
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Mobile No.</th>
+                <th>Balance</th>
+            </tr>
+            <tr>
+                <td>{{ customer.account_holder_name }}</td>
+                <td>{{ customer.mobile_number }}</td>
+                <td>{{ customer.balance }}</td>
+            </tr>
+        </table>
+    {% endif %}
+</div>
 {% endblock %}

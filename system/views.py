@@ -1,11 +1,19 @@
+from itertools import count
+from modulefinder import packagePathMap
+import re
+import sqlite3
+from time import process_time_ns
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 from django.contrib import messages 
-from system.models import MasterTable,CashInHand
+import system
+import system.bank_managament_system
+from system.models import MasterTable,CashInHand,PersonalBankAccount
 from system import bank_managament_system
 from django.http import HttpResponse
-from django.http import JsonResponse
+from system.bank_managament_system import Account, get_current_date
+from django.contrib.auth.decorators import login_required
 def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('login_username')
@@ -14,6 +22,7 @@ def login_view(request):
         if user is not None:
             login(request, user)
             print("logined....")
+            messages.error(request, 'Invalid username or password')
             return redirect('home')  # Redirect to home page after successful login
         else:
             messages.error(request, 'Invalid username or password')
@@ -34,6 +43,7 @@ def superuser_login_view(request):
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.db import connections
+
 def signup(request):
     if request.method == 'POST':
         USERNAME = request.POST.get('Name')
@@ -79,7 +89,7 @@ def empty_login_view(request):
 
 def regular_user_login(request):
     return render(request, 'login.html')
-
+@login_required
 def home_view(request):
     # Get the username of the currently logged-in user
     user = request.user.username
@@ -92,16 +102,33 @@ def home_view(request):
        
         cash_in_hand_instance = CashInHand.objects.using('other_database').get(username=user)
         cash_in_hand = int(cash_in_hand_instance.cash_in_hand)
-
+        count = PersonalBankAccount.objects.using('other_database').filter(username=user).count()
+        reg=str(master_record.licence_no)
+        dt=get_current_date()
+# Get the count of occurrences of the username in the table
     except MasterTable.DoesNotExist:
         bank_name = None
         dir_name = None
         cash_in_hand=0
-    return render(request, 'home.html', {'name': bank_name, 'dir_name': dir_name,'cash_hand':cash_in_hand})
+    return render(request, 'home.html', {'name': bank_name, 'dir_name': dir_name,'cash_hand':cash_in_hand,'account_count':count,'reg_no':"REG NO."+reg,'date':dt})
 
 
 def check_ac_bal(request):
+    customer = None
+    if request.method == 'POST':
+        account_number = request.POST.get('account_number')
+        try:
+            customer = PersonalBankAccount.objects.using('other_database').get(account_number=account_number)
+            if customer:
+                print(customer.account_holder_name)
+                return render(request, 'check_ac_bal.html', {'customer': customer})
+        except PersonalBankAccount.DoesNotExist:
+            em="Ac number Not Found Please Try Again...!"
+            return render(request,'check_ac_bal.html',{'msg':em})
+        except Exception as e:
+            print("Error happend at the check_ac_bal",e)
     return render(request,'check_ac_bal.html')
+@login_required
 def credit(request):
     user = request.user.username
     if 'submit_button' in request.POST:
@@ -144,7 +171,7 @@ def credit(request):
                 return HttpResponse("Account not found.")
     return render(request, 'credit.html')
 
-
+@login_required
 def debit(request):
    user = request.user.username
    if 'submit_button' in request.POST:
@@ -187,7 +214,82 @@ def debit(request):
    return render(request,'debit.html')
 
 def trf(request):
-   return render(request,'trf.html')
+    user = request.user.username
+    print("creating object of personal bank account")
+    accounts = PersonalBankAccount.objects.using('other_database').filter(username=user)
+    print("initalizing the data")
+    initial_data = {f'{account.account_number}-{account.account_holder_name}': f'{account.account_number}-{account.account_holder_name}' for account in accounts}
 
+    context = {
+        'initial_data': initial_data,
+    }
+    print("makin attributes of classes in forms.py")
+    
+
+
+    if request.method == 'POST':
+            fa =request.POST.get("from_account")
+            ta = request.POST.get("to_account")
+            fa1=str(fa).split("-")
+            ta1=str(ta).split("-")
+            from_account=int(fa1[0])
+            to_account=int(ta1[0])
+            print(from_account)
+            print(fa[0])
+            if from_account==to_account:
+                msg="Same Account Number is Not Valid..."
+                return render(request,'trf.html',{'msg':msg})
+            else:
+            # Processing the transfer here
+                amt = request.POST.get('amount')
+                customer1 = PersonalBankAccount.objects.using('other_database').get(account_number=from_account)
+                payee_ac_bal=int(customer1.balance)
+                a1 = Account(amt6=amt, user=user, an2=0)
+                try:
+                        chk = a1.transfer(from_account, to_account)
+                        if chk==True:
+                            # Get the updated account details
+                            customer1 = PersonalBankAccount.objects.using('other_database').get(account_number=from_account)
+                            customer2 = PersonalBankAccount.objects.using('other_database').get(account_number=to_account)
+                            msg = f"Amt: {amt} is successfully Transferred From {from_account} To {to_account}"
+                            return render(request, 'trf.html', {
+                                'suc_msg': msg,
+                                'from_account_number': from_account,
+                                'from_account_holder_name': customer1.account_holder_name,
+                                'from_account_balance': customer1.balance,
+                                'to_account_number': to_account,
+                                'to_account_holder_name': customer2.account_holder_name,
+                                'to_account_balance': customer2.balance
+                            })
+                        if chk=="balance low":
+                            msg1="Transfer Failed...Due To Low balance In AC No:"+str(from_account)
+                            return render(request,'trf.html',{'msg':msg1})
+                        else:
+                            msg3="Transfer Failed....."
+                            return render(request,'trf.html',{'msg':msg3})
+                except sqlite3.DatabaseError as e:
+                    print("from views",e)
+                except Exception as e :
+                        print("from views",e)
+                        return render(request,'trf.html',{'msg':e})
+               
+    return render(request, 'trf.html',context)
 def create_account(request):
+    user = request.user.username
+    if request.method == 'POST':
+        nm = request.POST.get('account_holder_name')
+        at = request.POST.get('account_type')
+        ad = request.POST.get('address')
+        mn = request.POST.get('mobile_number')
+        an = request.POST.get('aadhar_card_number')
+        pn = request.POST.get('pan_card_number')
+        if all([nm,at,ad,mn,an,pn,user]):
+            try:
+                ac_no=system.bank_managament_system.create_ac(nm,at,ad,mn,an,pn,user)
+                print(ac_no)
+                msg="Account Created Sucessfully With Account Number:"+str(ac_no)
+                return render(request,'create_account.html',{'msg':msg})
+            except Exception as e:
+                msg2="Error Occured During Creating Account"
+                return render(request,'create_account.html',{'msg2':msg2})
     return render(request,'create_account.html')

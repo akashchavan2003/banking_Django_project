@@ -18,6 +18,7 @@ class CashTransaction(models.Model):
     frm_ac_no = models.IntegerField()
     to_ac_no = models.IntegerField()
     username = models.CharField(max_length=50, primary_key=True)
+    narration = models.TextField(default="")
 
     class Meta:
         db_table = 'cash_transaction'
@@ -91,6 +92,9 @@ class PersonalBankAccount(models.Model):
 
     class Meta:
         db_table = 'personal_bank_account'
+        
+    def __str__(self):
+        return f"{self.account_number}-{self.account_holder_name}"
 
 class RevokeHistory(models.Model):
     ac_no = models.IntegerField()

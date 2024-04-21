@@ -2,6 +2,7 @@ import logging
 import sqlite3
 import time
 from sqlite3 import DatabaseError
+from uu import Error
 import bcrypt
 import pandas as pd
 from openpyxl import Workbook
@@ -96,25 +97,26 @@ def download_sta():
 
 
 
-def save_transaction(account=None, transaction_t=None, dt7=None, a1=None, cih=None, vn=None, fan=0, tan=0, user=None):
+def save_transaction(account=None, transaction_t=None, dt7=None, a1=None, cih=0, vn=None, fan=0, tan=0, user=None):
     try:
         print("Initializing save transaction")
         if cih is None:
             raise ValueError("cash_in_hand_previous (cih) cannot be None")
         
-        transaction = CashTransaction(
-            ac_no=account,
-            transaction_type=transaction_t,
-            date=dt7,
-            amt=a1,
-            cash_in_hand_previous=cih,
-            voucher_no=vn,
-            frm_ac_no=fan,
-            to_ac_no=tan,
-            username=user
-        )
-        # Save the transaction object to the database
-        transaction.save()
+        with transaction.atomic(using='other_database'):
+            transaction = CashTransaction(
+                ac_no=account,
+                transaction_type=transaction_t,
+                date=dt7,
+                amt=a1,
+                cash_in_hand_previous=cih,
+                voucher_no=vn,
+                frm_ac_no=fan,
+                to_ac_no=tan,
+                username=user
+            )
+        # Save the transaction object to the database specified by the 'other_database' alias
+        transaction.save(using='other_database')
         print("Completed save transaction")
     except ValueError as ve:
         logging.error("ValueError in save_transaction: %s", ve)
@@ -218,24 +220,26 @@ def get_voucher_no():
         logging.warning("Error connecting to the database: %s", e)
         return None
 
-def create_ac():
+def create_ac(nm,at,ad,mn,an,pn,user):
     # it creates the account no in the database by using simple query INSERT
-    nm = input("Enter The Customer Full Name")
-    at = input("Enter The Account Type")
-    ad = input("enter Customer Full Address")
-    mn = input("Enter The Customer Mobile NO.")
-    an = input("Enter the Customer Aadhar NO.")
-    pn = input("Enter The Pan card NO")
-    con = sqlite3.connect("bank_manage.db")
-    dt = get_current_date()
-    con.execute("""
-        INSERT INTO personal_bank_account
-        (account_holder_name, balance, account_type, opening_date, address, mobile_number, aadhar_card_number, pan_card_number)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    """, (nm, 0, at, dt, an, pn, an, pn))
-    con.commit()
-    con.close()
-    print("...........Customer Account Created successfully........")
+        with connections['other_database'].cursor() as cursor:
+            try:
+                dt = get_current_date()
+                cursor.execute("""
+                    INSERT INTO personal_bank_account
+                    (account_holder_name, balance, account_type, opening_date, address, mobile_number, aadhar_card_number, pan_card_number,username)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)
+                """, (nm, 0, at, dt, ad, mn, an, pn,user))
+                transaction.commit()
+                cursor.execute("SELECT account_number FROM personal_bank_account ORDER BY account_number DESC LIMIT 1")
+                account_number = cursor.fetchone()[0]
+                print("...........Customer Account Created successfully........")
+                return account_number
+            except Exception as e:
+                print(e)
+                transaction.rollback(using='other_database')
+            except sqlite3.Error as e:
+                print(e)
 
 
 class Customer:
@@ -334,7 +338,7 @@ class Account:
     # constructor manually that why pythons allowed to call a manual constructor
     def __init__(self, an2, amt6,user):
         self.amt2 = amt6
-        self.an2 = int(an2)
+        self.an2 = an2
         self.user=user
 
     def Deposit(self):
@@ -455,47 +459,53 @@ class Account:
             transaction.rollback(using=database_name)
             logging.error("Transaction failed: %s", e)
             return HttpResponse("Transaction failed: {}".format(e))    
-     
-                
 
-    def change_balance(self, amt2):
-        pass
-
-    def transfer(self, a02):
+    def transfer(self, a1,a2):
+        self.amt2=int(self.amt2)
         global rr, cc, cc2
-        try:
-            cc = sqlite3.connect("bank_manage.db")
-            try:
-                cc2 = cc.cursor()
-                qq = "SELECT balance FROM personal_bank_account WHERE account_number=?"
-                cc2.execute(qq, (self.an2,))
-                rr = cc2.fetchone()
-            except sqlite3.Error as e:
-                logging.warning("Error while getting details...", e)
-        except:
-            logging.warning("Error while connecting to database...", exc_info=True)
-        if rr[0] > self.amt2:
-            qq1 = "UPDATE personal_bank_account SET balance=balance-? WHERE account_number=?"
-            qq2 = "UPDATE personal_bank_account SET balance=balance+? WHERE account_number=?"
-            try:
-                cc2.execute(qq1, (self.amt2, self.an2))
+        print(a1,a2,type(a1),type(a2))
+        database_name='other_database'
+        with transaction.atomic(using=database_name):
+            with connections[database_name].cursor() as cursor:
+                print("connection suceed to database")
                 try:
-                    cc2.execute(qq2, (self.amt2, a02))
-                    cc.commit()
-                    tt = "TRF"
-                    d = get_current_date()
-                    vn = get_voucher_no()
-                    save_transaction(transaction_t=tt, dt7=d, vn=vn, fan=self.an2, tan=a02)  # Calling the function
-                    logging.info("%s RS. successfully Transferred to account number: %s", self.amt2, a02)
+                    qq = "SELECT balance FROM personal_bank_account WHERE account_number = {}".format(a1)
+                    cursor.execute(qq)
+                    print("Account fetching query has been successfully executed")
+                    rr = cursor.fetchone()
+                    print(rr)
                 except sqlite3.Error as e:
-                    cc.rollback()
-                    logging.warning("Transfer failed due to", e)
-            except:
-                logging.warning("Transaction failed....", exc_info=True)
-            finally:
-                cc.close()
-        else:
-            logging.info("The Account Balance Is Too Low To Debit The Amt")
+                    print("Error while getting details...", e)
+                if int(rr[0]) > int(self.amt2):
+                    qq1 = "UPDATE personal_bank_account SET balance=balance-{} WHERE account_number={}".format(int(self.amt2), a1)
+                    qq2 = "UPDATE personal_bank_account SET balance=balance+{} WHERE account_number={}".format(int(self.amt2), a2)
+                    try:
+                        cursor.execute(qq1)
+                        print("first updatin query is done")
+                        try:
+                            cursor.execute(qq2)
+                            print('second query has been done')
+                            tt = "TRF"
+                            d = get_current_date()
+                            vn = get_voucher_no()
+                            print("calling to save transaction")
+                            save_transaction(transaction_t=tt, dt7=d, vn=vn, fan=a1, tan=a2,user=self.user)  # Calling the function
+                            print("%s RS. successfully Transferred to account number: %s", self.amt2, a2)
+                            return True
+                        except sqlite3.Error as e:
+                            transaction.rollback(using=database_name)
+                            logging.warning("Transfer failed due to", e)
+                            print("save tra",e)
+                            return False
+                    except:
+                        transaction.rollback(using=database_name)
+                        logging.warning("Transaction failed....", exc_info=True)
+                        print("main query",e)
+                else:
+                    logging.info("The Account Balance Is Too Low To Debit The Amt")
+                    print("The Account Balance Is Too Low To Debit The Amt")
+                    return "balance low"
+                
 
     def apply_interest(self, intrest, period):
         pass

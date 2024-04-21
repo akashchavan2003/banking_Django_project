@@ -14,142 +14,133 @@
           /* Add your CSS styles here */
       </style>
   </head>
+  {% if msg %}
+  <div class="success_msg">
+    <h3>{{msg}}</h3>
+  </div>
+  {% endif %}
+
+  {% if msg2 %}
+  <div class="error_msg">
+    <h4>
+        {msg2}
+    </h4>
+  </div>
+  {% endif %}
   <body>
-      <h1>Create Bank Account</h1>
       <form id="account-form" method="post" action="{% url 'create_account' %}">
-          {% csrf_token %}
-          <div>
-              <label for="account_number">Account Number:</label>
-              <input type="text" id="account_number" name="account_number" required>
-          </div>
-          <div>
-              <label for="account_holder_name">Account Holder Name:</label>
-              <input type="text" id="account_holder_name" name="account_holder_name" required>
-          </div>
-          <div>
-              <label for="balance">Balance:</label>
-              <input type="number" id="balance" name="balance" step="0.01" required>
-          </div>
-          <div>
-              <label for="account_type">Account Type:</label>
-              <select id="account_type" name="account_type" required>
-                  <option value="">Select Account Type</option>
-                  <option value="savings">Savings</option>
-                  <option value="current">Current</option>
-                  <!-- Add more account types as needed -->
-              </select>
-          </div>
-          <div>
-              <label for="opening_date">Opening Date:</label>
-              <input type="date" id="opening_date" name="opening_date" required>
-          </div>
-          <div>
-              <label for="address">Address:</label>
-              <textarea id="address" name="address" required></textarea>
-          </div>
-          <div>
-              <label for="mobile_number">Mobile Number:</label>
-              <input type="tel" id="mobile_number" name="mobile_number" pattern="[0-9]{10}" required>
-          </div>
-          <div>
-              <label for="aadhar_card_number">Aadhar Card Number:</label>
-              <input type="text" id="aadhar_card_number" name="aadhar_card_number" pattern="[0-9]{12}" required>
-          </div>
-          <div>
-              <label for="pan_card_number">PAN Card Number:</label>
-              <input type="text" id="pan_card_number" name="pan_card_number" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" required>
-          </div>
-          <div>
-              <label for="username">Username:</label>
-              <input type="text" id="username" name="username" required>
-          </div>
-          <button type="submit">Create Account</button>
-      </form>
+        <h1>Create Personal Saving Account</h1>
+        {% csrf_token %}
+        <div>
+            <label for="account_holder_name">Account Holder Name:</label>
+            <input type="text" id="account_holder_name" name="account_holder_name" required>
+        </div>
+        <div>
+            <label for="account_type">Account Type:</label>
+            <select id="account_type" name="account_type" required>
+                <option value="">Select Account Type</option>
+                <option value="savings">Savings</option>
+                <option value="current">Current</option>
+                <!-- Add more account types as needed -->
+            </select>
+        </div>
+        <div>
+            <label for="address">Address:</label>
+            <textarea id="address" name="address" required></textarea>
+        </div>
+        <div>
+            <label for="mobile_number">Mobile Number:</label>
+            <input type="number" id="mobile_number" name="mobile_number" pattern="[0-9]{10}" required>
+        </div>
+        <div>
+            <label for="aadhar_card_number">Aadhar Card Number:</label>
+            <input type="number" id="aadhar_card_number" name="aadhar_card_number" pattern="[0-9]{12}" required>
+        </div>
+        <div>
+            <label for="pan_card_number">PAN Card Number:</label>
+            <input type="text" id="pan_card_number" name="pan_card_number" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" required>
+        </div>
+        <button type="submit">Create Account</button>
+    </form>
 
-      <script>
-          // Add your JavaScript code here if needed
-      </script>
-  </body>
-  </html>
-  <style>
-    <style>
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+      
+<style>
+ @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
 
-body {
-    font-family: 'Poppins', sans-serif;
-    background-color: #f2f2f2;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
+ body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
     margin: 0;
-    padding: 20px;
+    padding: 0;
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    height: 100vh;
 }
 
 .container {
-    background-color: #fff;
+    width: 60%; /* Adjust the width as needed */
+    max-width: 500px;
+    padding: 20px;
+    background-color:#f8f9fa;
     border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-    padding: 30px;
-    max-width: 600px;
-    width: 100%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: left; /* Center text */
 }
 
 h1 {
-    text-align: center;
-    margin-bottom: 30px;
-    color: #333;
+    color: #007bff;
+    margin-bottom: 20px; /* Add margin for separation */
+    text-align: left; /* Align left */
 }
 
-.form-group {
-    margin-bottom: 20px;
+form {
+    display: inline-block; /* Ensure the form is displayed as a block */
+    text-align: center; /* Align the form elements to the left */
+    width: 60%; /* Ensure the form takes up full width */
 }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #555;
+        }
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            outline: none;
+        }
+        button[type="submit"] {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: 100%;
+        }
+        button[type="submit"]:hover {
+            background-color: #0056b3;
+}
+.success_msg,error_msg{
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
-label {
-    display: block;
-    font-weight: 500;
-    margin-bottom: 5px;
-    color: #555;
 }
-
-input[type="text"],
-input[type="number"],
-input[type="date"],
-input[type="tel"],
-textarea,
-select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 16px;
-    background-color: #f9f9f9;
-    transition: border-color 0.3s ease;
+.success_msg{
+    color: green;
 }
-
-input[type="text"]:focus,
-input[type="number"]:focus,
-input[type="date"]:focus,
-input[type="tel"]:focus,
-textarea:focus,
-select:focus {
-    outline: none;
-    border-color: #6c63ff;
+.error_msg{
+    color: red;
 }
-
-button[type="submit"] {
-    background-color: #6c63ff;
-    color: #fff;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 5px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-button[type="submit"]:hover {
-    background-color: #5850ec;
-}
-  </style>
+</style>
 {% endblock %}

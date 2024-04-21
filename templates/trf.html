@@ -1,7 +1,191 @@
 {% extends 'base.html' %}
 {% block content %}
-    <!-- Add your content for this specific template here -->
-    <div class="example-content">
-        <h4>Transfer section</h4>
-    </div>
+<div class="container">
+    {% if suc_msg %}
+    <h2>{{ suc_msg }}</h2>
+    {% endif %}
+    {% if msg %}
+    <h2>{{msg}}</h2>
+    {% endif %}
+    <h1>Transfer Funds</h1>
+    <form id="transfer-form" method="post" action="{% url 'trf_page' %}">
+        {% csrf_token %}
+        <div>
+            <label for="from_account_number">From Account Number:</label>
+            <select id="id_from_account" name="from_account">
+                {% for account_key, account_value in initial_data.items %}
+                <option value="{{ account_key }}">{{ account_value }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="to_account_number">To Account Number:</label>
+            <select id="id_to_account" name="to_account">
+                {% for account_key, account_value in initial_data.items %}
+                <option value="{{ account_key }}">{{ account_value }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="amount">Amount:</label>
+            <input type="number" id="amount" name="amount" required>
+        </div>
+        <div>
+            <label for="narration">Narration:</label>
+            <textarea id="narration" name="narration" required></textarea>
+        </div>
+        <button type="submit" class="submit-btn">Transfer Funds</button>
+    </form>
+</div>
+<!-- Display account information if transfer successful -->
+{% if transfer_successful %}
+<div class="success-msg">
+    <p>Transfer successful!</p>
+    <p>From Account Info:</p>
+    <p>Account Number: {{ from_account_number }}</p>
+    <p>Account Holder Name: {{ from_account_holder_name }}</p>
+    <p>Balance: {{ from_account_balance }}</p>
+    <p>To Account Info:</p>
+    <p>Account Number: {{ to_account_number }}</p>
+    <p>Account Holder Name: {{ to_account_holder_name }}</p>
+    <p>Balance: {{ to_account_balance }}</p>
+    <p>Narration: {{ narration }}</p>
+</div>
+{% endif %}
+</div>
+<style>
+    /* styles.css */
+
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f2f2f2;
+        color: #333;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        /* Center horizontally */
+        align-items: center;
+        /* Center vertically */
+        min-height: 100vh;
+    }
+
+    .container {
+        width: 80%;
+        max-width: 600px;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        text-align: left;
+        /* Align text */
+    }
+
+    h1 {
+        color: #007bff;
+        margin-bottom: 20px;
+    }
+
+    form div {
+        margin-bottom: 15px;
+    }
+
+    .dropdown-menu {
+        position: relative;
+    }
+
+    .dropdown-menu.show {
+        z-index: 1;
+    }
+
+    label {
+        display: block;
+        color: #555;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select,
+    textarea {
+        width: calc(100% - 20px);
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-sizing: border-box;
+        outline: none;
+    }
+
+    .submit-btn[type="submit"] {
+        width: 100%;
+        padding: 10px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .submit-btn:hover {
+        background-color: #0056b3;
+    }
+
+    .success-msg {
+        background-color: #d4edda;
+        color: #155724;
+        padding: 15px;
+        border-radius: 5px;
+        margin-top: 20px;
+    }
+
+    .error-msg {
+        color: red;
+    }
+
+    h2 {
+        color: green;
+    }
+</style>
+<script>
+    
+function submitDropdownForm() {
+    var selectedOption = select.options[select.selectedIndex].value;
+        
+    // Set the value of the input field to the selected option
+    document.getElementById(inputId).value = selectedOption;
+}
+function submitAmountAndNarration() {
+    var form = document.getElementById('transfer-form');
+    form.submit();
+}
+    document.getElementById("transfer-form").onsubmit = function() {
+        // Check if both dropdown menus have selected options
+        console.log("foRM SUBMITTED")
+        var fromAccount = document.getElementById("id_from_account").value;
+        var toAccount = document.getElementById("id_to_account").value;
+        if (fromAccount === "" || toAccount === "") {
+            // If any dropdown menu is not selected, prevent form submission
+            alert("Please select both from and to accounts.");
+            return false;
+        }
+    };
+    // for checking the same account did not pass to transfer
+    document.getElementById('transfer-form').addEventListener('submit', function(event) {
+        // Prevent the default form submission
+
+        // Get the account numbers
+        const fromAccountValue = document.getElementById('id_from_account').value;
+        const toAccountValue = document.getElementById('id_to_account').value;
+
+        // Compare the values and show an alert if they are the same
+        if (fromAccountValue === toAccountValue) {
+            event.preventDefault();
+            alert('Same Account Numbers Are Not Valid To Transfer.');
+        } else {
+            // Submit the form if account numbers are different
+            document.getElementById('myForm').submit();
+        }
+    });
+    
+</script>
 {% endblock %}

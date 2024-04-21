@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from django.urls import reverse_lazy
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -21,7 +22,8 @@ INSTALLED_APPS = [
     'allauth',  # Add 'allauth' and its dependencies
     'allauth.account',
     'allauth.socialaccount',
-    'system',  # Include your custom app here
+    'system',  
+    "debug_toolbar",# Include your custom app here
 ]
 
 MIDDLEWARE = [
@@ -33,6 +35,7 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 ROOT_URLCONF = 'banking.urls'
@@ -42,6 +45,7 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [os.path.join(BASE_DIR, 'templates')],  # Add this line
         'APP_DIRS': True,
+        
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -116,3 +120,11 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_EMAIL_VERIFICATION = 'none'
+
+
+INTERNAL_IPS = [
+    # ...
+    "127.0.0.1",
+    # ...
+]
+LOGIN_URL = reverse_lazy('login')
