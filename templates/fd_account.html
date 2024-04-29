@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+
+    /* CSS styles */
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        font-family: 'Poppins', sans-serif;
+        background-color: #f8f9fa;
+    }
+
+    .container {
+        margin: 0 auto;
+        max-width: 1000px;
+        width: 100%;
+        padding: 40px;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+
+    h2 {
+        color: #007bff;
+        margin-bottom: 20px;
+    }
+
+    form {
+        text-align: left;
+        margin-bottom: 30px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 10px;
+        color: #555;
+        font-weight: 500;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-sizing: border-box;
+        outline: none;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    button[type="submit"] {
+        padding: 12px 24px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 500;
+    }
+
+    button[type="submit"]:hover {
+        background-color: #0056b3;
+    }
+
+    a {
+        color: #007bff;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    a:hover {
+        text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+        .container {
+            max-width: 90%;
+            padding: 20px;
+        }
+    }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h2>Create FD Account</h2>
+        {% if error_message %}
+            <p>{{ error_message }}</p>
+        {% endif %}
+        <div>
+            <!-- First form for selecting personal bank account -->
+            <form id="ac_no_form" action="{% url 'fd_account' %}" method="post">
+                {% csrf_token %}
+                <label for="from_account">Select Personal Bank Account:</label>
+                <select id="from_account" name="from_account">
+                    {% for account_key, account_value in initial_data.items %}
+                        <option value="{{ account_key }}">{{ account_value }}</option>
+                    {% endfor %}
+                </select>
+                <input type="hidden" name="account_number" value="{{ customer.account_number }}"> 
+                <button type="submit" name="submitForm1" value="submit">Submit</button>
+            </form>
+        </div>
+        
+        {% if customer %}
+            <!-- Display customer information after first form submission -->
+            <hr>
+            <div>
+                <h2>Customer Information:</h2>
+                <p>Account Name: {{ customer.account_holder_name }}</p>
+                <p>Account Number: {{ customer.account_number }}</p>
+                <!-- Add other customer information fields here -->
+            </div>
+            <hr>
+            
+            <!-- Second form for opening FD account -->
+            <div>
+                <h2>Open FD Account</h2>
+                <form id="fd_form" action="{% url 'fd_account' %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="ac_no" value="{{ ac_no }}">
+                    <label for="deposit_amount">Deposit Amount:</label>
+                    <input type="number" id="deposit_amount" name="deposit_amount" required>
+                    
+                    <label for="duration">Duration (in months):</label>
+                    <input type="number" id="duration" name="duration" required>
+                    
+                    <label for="interest_rate">Interest Rate:</label>
+                    <input type="number" id="interest_rate" name="interest_rate" step="0.01" required>
+                    
+                    <button type="submit" name="submitForm2" value="submit">Submit</button>
+                </form>
+            </div>
+        {% endif %}
+    </div>
+    
+    <script> 
+        // JavaScript code
+        // Update hidden input with selected value when dropdown changes
+        function updateHiddenInput() {
+            var select = document.getElementById("id_from_account");
+            var selectedOption = select.options[select.selectedIndex].value;
+            document.getElementById("inputId").value = selectedOption;
+        }
+    
+    </script>
+    
+    {% endblock %}

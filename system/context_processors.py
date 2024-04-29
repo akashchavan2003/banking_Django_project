@@ -15,9 +15,11 @@ def custom_context(request):
         dir_name = str(master_record.dir_name).upper()
         reg_No=str(master_record.licence_no)
         dt=get_current_date()
+        url= '/media/bank_logo.jpg'
     except MasterTable.DoesNotExist:
         bank_name = None
         dir_name = None
         dt="0"
+        url= '/media/bank_logo.jpg'
     return{'bank_name': bank_name,
-        'name': dir_name,'reg_no':reg_No,'date':dt,'firm_name':bank_name}
+        'name': dir_name,'reg_no':reg_No,'date':dt,'firm_name':bank_name,'photo_url':url}

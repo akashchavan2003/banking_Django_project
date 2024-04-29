@@ -29,5 +29,10 @@ urlpatterns = [
     path('credit/', views.credit, name='credit'),
     path('debit/', views.debit, name='debit'),
     path('create_account/',views.create_account,name='create_account'), 
+    path('fd_account/', views.fd_account, name='fd_account'), 
+    path('rd_account/', views.rd_account, name='rd_account'), 
+    path('gold_loan/', views.gold_loan, name='gold_loan'), 
+    # path('form2/', views.form2, name='form2'),  
+    path('fd_loan/', views.fd_loan, name='fd_loan'), 
     path("__debug__/", include("debug_toolbar.urls")),
 ]   

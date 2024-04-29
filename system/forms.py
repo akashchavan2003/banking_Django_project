@@ -24,3 +24,5 @@ class SuperuserLoginForm(forms.Form):
         if superuser_username and not User.objects.filter(username=superuser_username, is_superuser=True).exists():
             raise forms.ValidationError("Invalid superuser credentials. Please try again.")
         return cleaned_data
+from django import forms
+

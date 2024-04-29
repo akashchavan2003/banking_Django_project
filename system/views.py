@@ -12,8 +12,10 @@ import system.bank_managament_system
 from system.models import MasterTable,CashInHand,PersonalBankAccount
 from system import bank_managament_system
 from django.http import HttpResponse
-from system.bank_managament_system import Account, get_current_date
+from system.bank_managament_system import Account, Fdaccount, get_current_date
 from django.contrib.auth.decorators import login_required
+
+import system.models
 def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('login_username')
@@ -194,6 +196,7 @@ def debit(request):
    if 'check_button' in request.POST:
             print("Button check clicked")
             ac_no = request.POST.get('account_number')
+            print(ac_no)
             if bank_managament_system.ac_availability(ac_no):
                 try:
                     with connections['other_database'].cursor() as cursor:
@@ -201,7 +204,7 @@ def debit(request):
                         row = cursor.fetchone()
                         if row:
                             ac_name, ac_bal = row
-                            return render(request, 'debit.html', {'account_holder_name': ac_name, 'account_balance': ac_bal})
+                            return render(request, 'credit.html', {'account_holder_name': ac_name, 'account_balance': ac_bal})
                         else:
                             return HttpResponse("No account found with the provided account number.")
                 except Exception as e:
@@ -272,8 +275,8 @@ def trf(request):
                 except Exception as e :
                         print("from views",e)
                         return render(request,'trf.html',{'msg':e})
-               
     return render(request, 'trf.html',context)
+
 def create_account(request):
     user = request.user.username
     if request.method == 'POST':
@@ -293,3 +296,60 @@ def create_account(request):
                 msg2="Error Occured During Creating Account"
                 return render(request,'create_account.html',{'msg2':msg2})
     return render(request,'create_account.html')
+
+def fd_account(request):
+    if request.method == 'POST':
+        print("FIrst form")
+        if 'submitForm1' in request.POST:
+            # Process the submission of the first form to obtain account information
+            try:
+                ac_no = request.POST.get('from_account').split('-')[0]
+                customer = PersonalBankAccount.objects.using('other_database').get(account_number=int(ac_no))
+                return render(request, 'fd_account.html', {'customer': customer,'ac_no':ac_no})
+            except PersonalBankAccount.DoesNotExist:
+                error_message = "Personal Bank Account not found."
+            except Exception as e:
+                error_message = f"An error occurred: {str(e)}"
+            return render(request, 'fd_account.html', {'error_message': error_message})
+
+        elif 'submitForm2' in request.POST:
+            print("in second form")
+            # Process the submission of the second form to open an FD account
+            try:
+               
+                ac_no = request.POST.get('ac_no', '')
+                fd_amount = request.POST.get('deposit_amount')
+                fd_duration = request.POST.get('duration')
+                int_rate = request.POST.get('interest_rate')
+
+                # Validate form data
+                if fd_amount and fd_duration and int_rate and ac_no:
+                    print("form validated")
+                    # Assuming create_account method returns True on success
+                    f1=Fdaccount()
+                    bol = f1.create_account(request.user.username, ac_no, fd_amount, fd_duration, int_rate)
+                    if bol:
+                        print("function excuted......")
+                        return render(request, 'fd_account.html', {'success_message': "Account Created Successfully."})
+                    else:
+                        error_message = "Account Creation Failed."
+                else:
+                    error_message = "All fields are required."
+            except Exception as e:
+                error_message = f"An error occurred from the second form: {str(e)}"
+            return render(request, 'fd_account.html', {'error_message': error_message})
+    else:
+        # Render the initial page with the first form
+        user1 = request.user.username
+        accounts = PersonalBankAccount.objects.using('other_database').filter(username=user1)
+        initial_data = {f'{account.account_number}-{account.account_holder_name}': f'{account.account_number}-{account.account_holder_name}' for account in accounts}
+        context = {'initial_data': initial_data}
+        return render(request, 'fd_account.html', context) 
+    
+def rd_account(request):
+    return render(request,'rd_account.html')
+
+def gold_loan(request):
+    return render(request,'gold_loan.html')
+def fd_loan(request):
+    return render(request,'fd_loan.html')

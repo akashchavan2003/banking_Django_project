@@ -108,3 +108,20 @@ class RevokeHistory(models.Model):
 
     class Meta:
         db_table = 'revoke_history'
+class FDAccountModel(models.Model):
+        fd_ac_no = models.IntegerField(primary_key=True)
+        customer_name = models.CharField(max_length=255)
+        account_balance = models.DecimalField(max_digits=10, decimal_places=2)
+        opening_date = models.DateField()
+        int_rate = models.DecimalField(max_digits=5, decimal_places=2)
+        fd_days = models.IntegerField()
+        pre_mature_withdraw = models.BooleanField(default=False)
+        mat_amt = models.IntegerField(null=True)
+        fd_opening_amt = models.IntegerField()
+        personal_ac_no = models.IntegerField()
+        fd_mat_dt = models.DateField(null=True)
+        renew = models.IntegerField()
+        username = models.CharField(max_length=255)
+
+        class Meta:
+            db_table = 'fd_accounts'

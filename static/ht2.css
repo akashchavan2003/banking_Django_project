@@ -1,8 +1,5 @@
 
 
-/* Please ❤ this if you like it! */
-
-
 @import url('https://fonts.googleapis.com/css?family=Poppins:400,500,600,700,800,900');
 
 body{
@@ -47,6 +44,9 @@ h6 span{
 }
 .full-height{
   min-height: 100vh;
+}
+h6{
+  color: white;
 }
 [type="checkbox"]:checked,
 [type="checkbox"]:not(:checked){

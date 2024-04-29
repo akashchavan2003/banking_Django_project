@@ -96,11 +96,20 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 STATIC_URL = '/static/'
+
+# Additional locations of static files
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
+
+# Directory where Django will collect static files during deployment
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Authentication settings for allauth
 AUTHENTICATION_BACKENDS = [
@@ -128,3 +137,5 @@ INTERNAL_IPS = [
     # ...
 ]
 LOGIN_URL = reverse_lazy('login')
+SESSION_COOKIE_NAME = 'mybankapp_session'
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
