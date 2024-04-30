@@ -24,6 +24,8 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'system',  
     "debug_toolbar",# Include your custom app here
+    
+    
 ]
 
 MIDDLEWARE = [

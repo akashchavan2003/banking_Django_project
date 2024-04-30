@@ -651,7 +651,7 @@ class Fdaccount:
         # Return the absolute value of the number of days
         return abs(delta.days)
 
-    def create_account(self,user,personal_ac_no,fd_am,ir,fd_days):
+    def create_account(self,user,personal_ac_no,fd_am,fd_days,ir):
         database_name='other_database'
         with transaction.atomic(using=database_name):
             with connections[database_name].cursor() as cursor:

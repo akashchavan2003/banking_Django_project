@@ -7,6 +7,7 @@ class CashInHand(models.Model):
 
     class Meta:
         db_table = 'cash_in_hand'
+        using = 'other_database'
 
 class CashTransaction(models.Model):
     ac_no = models.IntegerField()
@@ -22,6 +23,7 @@ class CashTransaction(models.Model):
 
     class Meta:
         db_table = 'cash_transaction'
+        using = 'other_database'
 
 class DeletedAccount(models.Model):
     account_number = models.AutoField(primary_key=True)
@@ -37,6 +39,7 @@ class DeletedAccount(models.Model):
 
     class Meta:
         db_table = 'deleted_ac'
+        using = 'other_database'
 
 class FDLoan(models.Model):
     Customer_Name = models.CharField(max_length=100)
@@ -56,6 +59,7 @@ class FDLoan(models.Model):
 
     class Meta:
         db_table = 'FD_Loans'
+        using = 'other_database'
 
 class MasterTable(models.Model):
     username = models.CharField(max_length=50, primary_key=True)
@@ -70,6 +74,7 @@ class MasterTable(models.Model):
     
     class Meta:
         db_table = 'master_table'
+        using = 'other_database'
 
 class Other(models.Model):
     username = models.CharField(max_length=50, primary_key=True)
@@ -77,6 +82,7 @@ class Other(models.Model):
 
     class Meta:
         db_table = 'other'
+        using = 'other_database'
 
 class PersonalBankAccount(models.Model):
     account_number = models.AutoField(primary_key=True)
@@ -92,6 +98,7 @@ class PersonalBankAccount(models.Model):
 
     class Meta:
         db_table = 'personal_bank_account'
+        using = 'other_database'
         
     def __str__(self):
         return f"{self.account_number}-{self.account_holder_name}"
@@ -108,6 +115,7 @@ class RevokeHistory(models.Model):
 
     class Meta:
         db_table = 'revoke_history'
+        using = 'other_database'
 class FDAccountModel(models.Model):
         fd_ac_no = models.IntegerField(primary_key=True)
         customer_name = models.CharField(max_length=255)
@@ -125,3 +133,4 @@ class FDAccountModel(models.Model):
 
         class Meta:
             db_table = 'fd_accounts'
+            using = 'other_database'
