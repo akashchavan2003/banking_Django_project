@@ -141,3 +141,4 @@ INTERNAL_IPS = [
 LOGIN_URL = reverse_lazy('login')
 SESSION_COOKIE_NAME = 'mybankapp_session'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+DATABASE_ROUTERS = ['system.routers.OtherDatabaseRouter']

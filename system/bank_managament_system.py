@@ -12,9 +12,11 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 from datetime import datetime, timedelta
 from django.db import connections,transaction
 from system import models
-from system.models import PersonalBankAccount,CashTransaction,CashInHand
+from system.models import PersonalBankAccount,CashTransaction,CashInHand,FDAccountModel, RDAccountModel
 from django.db.models import F
 from django.http import HttpResponse
+import math
+
 logging.basicConfig(
     level=logging.DEBUG,  # Set the minimum logging level
     format="%(asctime)s - %(levelname)s - %(message)s"  # Define the format of log messages
@@ -658,18 +660,27 @@ class Fdaccount:
                 od = str(get_current_date())
                 try:
                     customer=PersonalBankAccount.objects.using('other_database').get(account_number=personal_ac_no)
-                    fd_mat_amt= (fd_am * ir * fd_days) / (365 * 100)
-                    qq2 = ("INSERT INTO fd_accounts (customer_name, opening_date, int_rate, fd_days, "
-                               "pre_mature_withdraw,fd_opening_amt, mat_amt,personal_ac_no,fd_mat_dt,username) VALUES (?, ?, "
-                               "?, ?, ?, ?,?,"
-                               "?,?,?)")
-                    cursor.execute(qq2, (
-                            customer.acc, od, ir, fd_days, False, fd_am, fd_mat_amt + fd_am, personal_ac_no,
-                            add_days_to_date(od, fd_days),user))
+                    fd_intrest= (int(fd_am) * int(ir) * int(fd_days)) / (365 * 100)
+                    fd_mat_amt=float(fd_intrest)+float(fd_am)
+                    new_account = FDAccountModel.objects.using('other_database').create(
+                    customer_name=customer.account_holder_name,
+                    opening_date=od,
+                    int_rate=ir,
+                    fd_days=fd_days,
+                    fd_opening_amt=fd_am,
+                    personal_ac_no=personal_ac_no,
+                    username=user,
+                    account_balance=0,  # Assuming initial balance
+                    renew=0 ,
+                    pre_mature_withdraw=False,
+                    mat_amt= fd_mat_amt,
+                    fd_mat_dt=add_days_to_date(od, int(fd_days)) ,
+                    )
+                    new_account.save
+
                     print("Account Number created sucessfully")
                     return True  
                 except Exception as r:
-                    transaction.rollback.using('other_database')
                     print("the error from the bank_management",r)
                     return False
                 
@@ -938,9 +949,66 @@ class Fdaccount:
                 finally:
                     if cc0:
                         cc0.close()
-
-
+def calculate_rd_mat_amt(rd_amt, int_rate, rd_months):
+    try:
+        # Convert input parameters to appropriate types
+        rd_amt = float(rd_amt)
+        int_rate = float(int_rate)
+        rd_months = int(rd_months)
+        
+        # Calculate quarterly interest rate and number of quarters
+        r = int_rate / 400  # Quarterly interest rate
+        n = rd_months // 3  # Number of quarters
+        
+        # Calculate maturity value using the provided formula
+        M = rd_amt * (((1 + r) ** n) - 1) / (1 - (1 + r) ** (-1/3))
+        
+        # Calculate interest earned
+        interest_earned = M - (rd_amt * rd_months)
+        
+        # Round the results to two decimal places
+        M = round(M, 2)
+        interest_earned = round(interest_earned, 2)
+        
+        return M, interest_earned
+    except Exception as e:
+        print("Error from the calculate_rd_mat_amt:", e)
+        return None, None
 class RDaccount:
+    def create_rd_account(self,user,personal_ac_no,rd_am,rd_month,ir):
+        database_name='other_database'
+        with transaction.atomic(using=database_name):
+            with connections[database_name].cursor() as cursor:
+                od = str(get_current_date())
+                rd_days = int(rd_month) * 30
+                try:
+                    customer=PersonalBankAccount.objects.using('other_database').get(account_number=personal_ac_no)
+                    res=calculate_rd_mat_amt(rd_am,ir,rd_month)
+                    print(res[1],res[0])  
+                    rd_mat_amt=res[0]
+                    new_account = RDAccountModel.objects.using('other_database').create(
+                    customer_name=customer.account_holder_name,
+                    opening_date=od,
+                    int_rate=ir,
+                    rd_months=rd_month,
+                    rd_amt=rd_am,
+                    int_earned=res[1],
+                    personal_ac_no=personal_ac_no,
+                    username=user,
+                    account_balance=0,  # Assuming initial balance
+                    renew=0 ,
+                    pre_mature_withdraw=False,
+                    mat_amt=rd_mat_amt ,
+                    rd_mat_date=add_days_to_date(od, int(rd_days)) ,
+                    )
+                    new_account.save
+
+                    print("Account Number created sucessfully")
+                    print("rd mat amt is",rd_mat_amt)
+                    return True  
+                except Exception as r:
+                    print("the error from the bank_management",r)
+                    return False
     def apply_interest(self):
         # Calculate and apply interest to the RD account balance
         pass
