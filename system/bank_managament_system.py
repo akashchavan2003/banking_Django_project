@@ -704,88 +704,33 @@ class Fdaccount:
             except:
                 logging.error("Error while connecting to database")
 
-    def add_funds(self):
-            # get Account number
-            an5 = int(input("Enter FD Account number to add funds:"))
-            # Check account availability
-            if self.check_account(an5):
-                # CHECK FD WITHDRAW STATUS FOR AVOIDING REPEAT TRANSACTION
-                r3 = self.check_fd_balance(an5)
-                if r3[2] == 1:
-                    logging.info("FD Account is closed....")
-                else:
-                    print("1.Transfer from the Saving Account")
-                    print("2.For Cash deposit")
-                    print("3.Online Transfer")
-                    c = int(input("Enter your choice"))
-                    if c == 1:
+    def add_funds(self, fd_obj, user, ac_no):
+
+        database_name='other_database'         
+        try:
+            with transaction.atomic(using=database_name):
+                with connections[database_name].cursor() as cursor:
+                    try:
+                        cih=CashInHand.objects.using(database_name).get(username=user)
+                        set_amt=int(cih.cash_in_hand)+int(fd_obj.fd_opening_amt)
+                        print(set_amt)
+                        obj=Wallet(set_amt,user,int(cih.cash_in_hand))
+                        obj.cash_in_hand_handle()
                         try:
-                            c = sqlite3.connect("bank_manage.db")
-                            try:
-                                # Getting all details form fd_ac_table information for specific account number
-                                cu = c.cursor()
-                                query8 = "SELECT * FROM fd_accounts WHERE fd_ac_no=?"
-                                cu.execute(query8, (an5,))
-                                rows = cu.fetchone()
-                                cc1 = Customer(rows[9])
-                                result01 = cc1.get_balance()
-                                # comparison between saving account balance with fd balance to Transfer
-                                if result01 > rows[8]:
-                                    ob_co = Common_functions(rows[8], rows[0], rows[9])
-                                    try:
-                                        ob_co.transfer_funds()
-                                        logging.info("AMT Transfer successfully from Saving Account To FD Account....")
-                                    except Exception as e:
-                                        logging.error("Transfer Failed due to", e)
-                                else:
-                                    logging.info("The Personal Account Balance Is To Low For Add funds in FD Account")
-                            except sqlite3.Error as err:
-                                logging.info("Error Occurred", err)
-                                c.rollback()
+                            record=FDAccountModel.objects.using(database_name).get(username=user,fd_ac_no=ac_no)
+                            record.account_balance=fd_obj.fd_opening_amt
+                            record.save()
+                            print("fund added successfuly")
+                            return True
                         except Exception as e:
-                            logging.info("Error while connecting to database", e)
-                        finally:
-                            c.close()
-                    elif c == 2:
-                        try:
-                            conec = sqlite3.connect("bank_manage.db")
-                            ccu = conec.cursor()
-                            qq8 = "SELECT pre_mature_withdraw,fd_opening_amt FROM fd_accounts WHERE fd_ac_no=?"
-                            ccu.execute(qq8, (an5,))
-                            tr = ccu.fetchone()
-                            rr = self.check_fd_balance(an5)
-                            if tr[0] == 1:
-                                logging.info("FD Account is closed....")
-                            else:
-                                print("Enter Deposit Amount For FD Number.", an5)
-                                cda = int(input())
-                                if tr[1] == cda:
-                                    try:
-                                        qq1 = "UPDATE fd_accounts SET account_balance=? WHERE fd_ac_no=?"
-                                        ccu.execute(qq1, (cda, an5,))
-                                        conec.commit()
-                                        try:
-                                            ow = Wallet(cda)
-                                            ow.cash_in_hand_deposit()
-                                            logging.info("AMT Added successfully to FD Account")
-                                        except Exception as e:
-                                            logging.error(e)
-                                            conec.rollback()
-                                    except Exception as e:
-                                        conec.rollback()
-                                        logging.info("Transaction is failed")
-                                    finally:
-                                        conec.close()
-                                else:
-                                    print("Entered Amount is wrong to Deposit")
-                        except DatabaseError as e:
-                            logging.error("Error while connecting to database", e)
-                    elif c == 3:
-                        pass
-                    else:
-                        print("Invalid Input")
-            else:
-                logging.info("Account does not exist. Please try again.")
+                            print("error occured in when adding to fd balance", e)
+                    except Exception as e:
+                        print("error on whole transaction",e)
+                        transaction.rollback(using=database_name)
+        except Exception as e:
+            transaction.rollback(using=database_name)
+            print("error while connecting to database",e)
+
 
     def withdraw(self):
             fd_Ac_n = int(input("Enter the FD Account Number: "))

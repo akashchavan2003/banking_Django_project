@@ -34,5 +34,7 @@ urlpatterns = [
     path('gold_loan/', views.gold_loan, name='gold_loan'), 
     # path('form2/', views.form2, name='form2'),  
     path('fd_loan/', views.fd_loan, name='fd_loan'), 
+    path('fund_fd_account/',views.fund_fd_ac,name='fund_fd_account'), # Add this line
+    path('fund_rd_account/',views.fund_rd_ac,name='fund_rd_account'), # Add this line
     path("__debug__/", include("debug_toolbar.urls")),
 ]   

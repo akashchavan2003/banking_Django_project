@@ -1,4 +1,89 @@
-{% extends 'base.html' %}
+
+<head>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+{% extends "base.html" %}
 {% block content %}
-<h2>FD LOAN PAGE</h2>
+<div class="container mt-5">
+    <h2 style="color: lightskyblue;">Create FD Loan</h2>
+    
+    {% if error %}
+        <p style="color:red">{{ error }}</p>
+    {% endif %}
+    
+    {% if success %}
+        <p style="color:green">{{ success }}</p>
+    {% endif %}
+    <style>
+         .warning {
+            color: red;
+            display: none;
+        }
+    </style>
+    <!-- Form for selecting personal bank account -->
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="from_account">Select Personal Bank Account:</label>
+            <select id="from_account" name="from_account" class="form-control">
+                {% for account_key, account_value in initial_data.items %}
+                    <option value="{{ account_key }}" {% if account_key == selected_account %}selected{% endif %}>{{ account_value }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" name="submitForm1" class="btn btn-primary">Next</button>
+    </form>
+
+
+    {%if info %}
+        <h4>FD Information:</h4>
+        <p style="color:rgb(12, 13, 12)"><strong>Account Name:</strong> {{ info.customer_name }}</p>
+        <p style="color:rgb(3, 3, 3)"><strong>FD Amount:</strong> {{ info.fd_opening_amt }}</p>
+        <p style="color:rgb(3, 3, 3)"><strong>Maturity Date:</strong> {{ info.fd_mat_dt}}</p>
+        <p style="color:rgb(3, 3, 3)"><strong>Maturity Amount :</strong> {{ info.mat_amt }}</p>
+    {% endif %}
+
+    
+    {% if FDTrue %}
+    <form id="detailsForm">
+        <label for="amount">Enter Amount:</label>
+        <input type="number" id="amount" name="amount" required>
+        <span id="warningMessage" class="warning">Amount exceeds the limit!</span>
+        <br><br>
+        <label for="interest_rate">Enter Interest Rate:</label>
+        <input type="number" id="interest_rate" name="interest_rate" step="0.01" required>
+        <br><br>
+        <label for="months">Enter Number of Months:</label>
+        <input type="number" id="months" name="months" required>
+        <br><br>
+        <button type="submit">Submit</button>
+    </form>
+    {% endif %}
+    
+    <script>
+    const limit = {{limit}};
+        console.log(limit)
+document.getElementById('detailsForm').addEventListener('submit', function(event) {
+    const amount = parseFloat(document.getElementById('amount').value);
+    const warningMessage = document.getElementById('warningMessage');
+
+    if (amount > limit) {
+        event.preventDefault();  // Prevent form submission
+        warningMessage.style.display = 'inline';  // Show warning message
+    } else {
+        warningMessage.style.display = 'none';  // Hide warning message
+    }
+});
+
+document.getElementById('amount').addEventListener('input', function() {
+    const amount = parseFloat(this.value);
+    const warningMessage = document.getElementById('warningMessage');
+
+    if (amount > limit) {
+        warningMessage.style.display = 'inline';  // Show warning message
+    } else {
+        warningMessage.style.display = 'none';  // Hide warning message
+    }
+});
+    </script>
 {% endblock %}

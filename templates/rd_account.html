@@ -116,6 +116,7 @@
                 <h2>Customer Information:</h2>
                 <p>Account Name: {{ customer.account_holder_name }}</p>
                 <p>Mobile Number: {{ customer.mobile_number }}</p>
+                <p>Pan No: {{customer.pan_card_number}}</p>
                 <!-- Add other customer information fields here -->
             </div>
             <hr>
@@ -126,13 +127,13 @@
                 <form id="fd_form" action="{% url 'rd_account' %}" method="post">
                     {% csrf_token %}
                     <input type="hidden" name="ac_no" value="{{ ac_no }}">
-                    <label for="deposit_amount">Deposit Amount:</label>
+                    <label for="deposit_amount">MOnthly Deposit Amount:</label>
                     <input type="number" id="deposit_amount" name="deposit_amount" required>
                     
                     <label for="duration">Duration (in months):</label>
                     <input type="number" id="duration" name="duration" required>
                     
-                    <label for="interest_rate">Interest Rate:</label>
+                    <label for="interest_rate">Interest Rate(Annualy):</label>
                     <input type="number" id="interest_rate" name="interest_rate" step="0.01" required>
                     
                     <button type="submit" name="submitForm2" value="submit">Submit</button>

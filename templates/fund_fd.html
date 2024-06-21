@@ -1,0 +1,89 @@
+<head>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h2 style="color: lightskyblue;">Fund FD Account</h2>
+    
+    {% if error %}
+        <p style="color:red">{{ error }}</p>
+    {% endif %}
+    
+    {% if success %}
+        <p style="color:green">{{ success }}</p>
+    {% endif %}
+    
+    <!-- Form for selecting personal bank account -->
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="from_account">Select Personal Bank Account:</label>
+            <select id="from_account" name="from_account" class="form-control">
+                {% for account_key, account_value in initial_data.items %}
+                    <option value="{{ account_key }}" {% if account_key == selected_account %}selected{% endif %}>{{ account_value }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" name="submitForm1" class="btn btn-primary">Next</button>
+    </form>
+    
+    <!-- Form for fund transfer if FD is true -->
+    {% if FD %}
+    {% if fdobj %}
+    <hr>
+    <div class="mb-4">
+        <h4>Customer Information:</h4>
+        <p style="color:rgb(12, 13, 12)"><strong>Account Name:</strong> {{ fdobj.customer_name }}</p>
+        <p style="color:rgb(3, 3, 3)"><strong>Account Number:</strong> {{ fdobj.fd_ac_no }}</p>
+        <p style="color:rgb(3, 3, 3)"><strong>FD Amount:</strong> {{ fdobj.fd_opening_amt }}</p>
+        <p style="color:rgb(3, 3, 3)"><strong>Maturity Amount:</strong> {{ fdobj.mat_amt}}</p>
+    </div>
+    <hr>
+    {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="fdAccountNumber" value="{{ fdobj.fd_ac_no }}">
+            <div class="form-group">
+                <label for="transferType">Transfer Type</label>
+                <select class="form-control" id="transferType" name="transferType" required>
+                    <option value="cash">Cash</option>
+                    <option value="savings">From Savings</option>
+                </select>
+                <button type="submit" name="submitForm2" class="btn btn-primary">Submit</button>
+            </div>
+        </form>
+            {% if Proceed %}
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="fdAccountNumber" value="{{ fdobj.fd_ac_no }}">
+                <button type="submit" name="cash_proceed" value="save" class="btn btn-primary">Proceed To Add Cash</button>
+                <button type="submit" name="cash_proceed" value="delete" class="btn btn-danger">Cancel</button>
+            </form>
+            {% endif %}
+
+        {% if account %}
+            <div class="form-group">
+                <h4>Savings Account Information</h4>
+                <label>Account Holder Name</label>
+                <p style="color:black">{{ account.account_holder_name }}</p>
+                <label>Account Balance</label>
+                <p style="color:black">{{ account.balance }}</p>
+            </div>
+        {% endif %}
+        
+        {% if balance %}
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" name="action" value="save" class="btn btn-primary">Proceed To Transfer Fund</button>
+            <button type="submit" name="action" value="delete" class="btn btn-danger">cancel</button>
+        </form>
+        {% endif %}
+    {% endif %}
+</div>
+{% endblock %}
+<style>
+    p {
+        color: black;
+    }
+</style>

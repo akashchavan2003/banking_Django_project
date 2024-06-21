@@ -1,15 +1,17 @@
+from ast import Pass
 from itertools import count
 from modulefinder import packagePathMap
 import re
 import sqlite3
-from time import process_time_ns
+from django.http import JsonResponse
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
-from django.contrib import messages 
+from django.contrib import messages
+from markupsafe import EscapeFormatter 
 import system
 import system.bank_managament_system
-from system.models import MasterTable,CashInHand,PersonalBankAccount
+from system.models import FDAccountModel, MasterTable,CashInHand,PersonalBankAccount,RDAccountModel
 from system import bank_managament_system
 from django.http import HttpResponse
 from system.bank_managament_system import Account, Fdaccount, RDaccount, get_current_date
@@ -329,8 +331,9 @@ def fd_account(request):
                     f1=Fdaccount()
                     bol = f1.create_account(request.user.username, ac_no, fd_amount, fd_duration, int_rate)
                     if bol:
+                        last_account = FDAccountModel.objects.using('other_database').order_by('-id').first()
                         print("function excuted......")
-                        return render(request, 'fd_account.html', {'success_message': "Account Created Successfully."})
+                        return render(request, 'fd_account.html', {'error_message': "Account Created Successfully With Ac.No:"+last_account.fd_ac_no})
                     else:
                         error_message = "Account Creation Failed."
                 else:
@@ -377,9 +380,10 @@ def rd_account(request):
                     # Assuming create_account method returns True on success
                     f1=RDaccount()
                     bol = f1.create_rd_account(request.user.username, ac_no, fd_amount, fd_duration, int_rate)
-                    if bol:
+                    if bol:      
+                        last_account = RDAccountModel.objects.using('other_database').order_by('-id').first()
                         print("function excuted......")
-                        return render(request, 'rd_account.html', {'error_message': "Account Created Successfully."})
+                        return render(request, 'rd_account.html', {'error_message': "Account Created Successfully With Ac.No:"+ last_account.rd_ac_no})
                     else:
                         error_message = "Account Creation Failed."
                 else:
@@ -397,5 +401,136 @@ def rd_account(request):
 
 def gold_loan(request):
     pass
+
+
+def fund_rd_ac(request):
+    return render(request,'fund_rd.html')
+
+from django.db import transaction
+
+@login_required
+def fund_fd_ac(request):
+    user1 = request.user.username
+    global ac_no
+
+    if request.method == 'POST':
+        # this is for specially for first dropdown to show all fd accounts to the user with the button
+        if 'submitForm1' in request.POST:
+            ac_no = request.POST.get('from_account').split('-')[0]
+            try:
+                fdobj = FDAccountModel.objects.using('other_database').get(fd_ac_no=ac_no)
+                return render(request, 'fund_fd.html', {'fdobj': fdobj, 'FD': True, 'selected_account': ac_no})
+            except FDAccountModel.DoesNotExist:
+                return render(request, 'fund_fd.html', {'error': 'FD account does not exist.', 'selected_account': ac_no})
+        # this is second button where the user selects the transfer type 
+        elif 'submitForm2' in request.POST:
+            transfer_type = request.POST.get('transferType')
+            try:
+                info = FDAccountModel.objects.using('other_database').get(fd_ac_no=int(ac_no))
+                
+                if info.account_balance == info.fd_opening_amt:
+                    return render(request, 'fund_fd.html', {'error': "This Account is Already Funded...", 'FD': True, 'fdobj': info, 'selected_account': ac_no})
+                # if user cash selects cash the they calls class and object
+                if transfer_type == 'cash':
+                    print("in cash")
+                    if 'cash_proceed' in request.POST:
+                        print("in the POST method")
+                        if request.POST.get('cash_proceed') == 'save':
+                            print("in save")
+                            try:
+                                obj = Fdaccount()
+                                chk = obj.add_funds(fd_obj=info, user=user1, ac_no=ac_no)
+                                if chk:
+                                    return render(request, 'fund_fd.html', {'success': 'Cash Added Successfully To FD Account.', 'FD': True, 'fdobj': info, 'selected_account': ac_no})
+                                else:
+                                    return render(request, 'fund_fd.html', {'error': "Error To deposit Cash", 'FD': True, 'fdobj': info, 'selected_account': ac_no})
+                            except Exception as e:
+                                print(e)
+                                return render(request, 'fund_fd.html', {'error': str(e), 'FD': True, 'fdobj': info, 'selected_account': ac_no})
+                        else:
+                            print("pressed cancel")
+                            return redirect('fund_fd')
+                    else:
+                        print("entered in the else")
+                        return render(request, 'fund_fd.html', {'cash': True, 'FD': True, 'fdobj': info, 'selected_account': ac_no, 'Proceed': True})
+ 
+                        
+                # means the user selects the transfer type from saving and now here we check the account balance 
+                # if the account balnce is greater or equal then we reneder the blance where we show the buttons to proceed
+                # if balance meets then we show the msg 
+                else:
+                    try:
+                        account = PersonalBankAccount.objects.using('other_database').get(username=user1, account_number=info.personal_ac_no)
+                        if account.balance >= info.fd_opening_amt:
+                            return render(request, 'fund_fd.html', {'account': account, 'balance': True, 'FD': True, 'fdobj': info, 'selected_account': ac_no})
+                        else:
+                            return render(request, 'fund_fd.html', {'error': 'Insufficient balance in savings account.', 'account': account, 'FD': True, 'fdobj': info, 'selected_account': ac_no})
+                    except Exception as e:
+                        print(e)
+                    return render(request, 'fund_fd.html', {'FD': True, 'fdobj': info, 'selected_account': ac_no})
+            except Exception as e:
+                print("Problem in the second button", e)
+                return render(request, 'fund_fd.html', {'FD': True, 'selected_account': ac_no})
+        # it works when upper returns and renders the balance account and FD and if the balance is less then this blocks skips
+        # because the condition not meets it means the else blocks firstly renders the buttons that why elif condition meets for POST method 
+        # if they did not meet the elif conditions it means the account balance is lower
+        elif 'action' in request.POST:
+            action = request.POST.get('action')
+            try:
+                info = FDAccountModel.objects.using('other_database').get(fd_ac_no=int(ac_no))
+                account = PersonalBankAccount.objects.using('other_database').get(username=user1, account_number=info.personal_ac_no)
+                
+                if action == 'save':
+                    print("Proceed button pressed")
+                    with transaction.atomic(using='other_database'):
+                        if account.balance >= info.fd_opening_amt:
+                            account.balance -= info.fd_opening_amt
+                            account.save()
+                            info.account_balance = info.fd_opening_amt
+                            info.save()
+                            return render(request, 'fund_fd.html', {'success': 'Funds transferred successfully.', 'FD': True, 'fdobj': info, 'selected_account': ac_no})
+                        else:
+                            return render(request, 'fund_fd.html', {'error': 'Insufficient balance in savings account.', 'account': account, 'FD': True, 'fdobj': info, 'selected_account': ac_no})
+                
+                elif action == 'delete':
+                    print("Cancel button pressed")
+                    return redirect('fund_fd')  # Replace 'fund_fd_ac' with the appropriate URL name for the fund_fd_ac view
+            
+            except Exception as e:
+                print(e)
+                return render(request, 'fund_fd.html', {'error': 'Error while processing the action.', 'FD': True, 'fdobj': info, 'selected_account': ac_no})
+
+    else:
+        accounts = FDAccountModel.objects.using('other_database').filter(username=user1)
+        initial_data = {f'{account.fd_ac_no}-{account.customer_name}': f'{account.fd_ac_no}-{account.customer_name}' for account in accounts}
+        context = {'initial_data': initial_data}
+        return render(request, 'fund_fd.html', context)
+    
+
 def fd_loan(request):
-    return render(request,'fd_loan.html')
+    user1=request.user.username
+    if request.method == 'POST':
+        # this is for specially for first dropdown to show all fd accounts to the user with the button
+        if 'submitForm1' in request.POST:
+            ac_no = request.POST.get('from_account').split('-')[0]
+            try:
+                info = FDAccountModel.objects.using('other_database').get(fd_ac_no=ac_no)
+                return render(request, 'fd_loan.html',{'info':info,'FDTrue':True})
+            except FDAccountModel.DoesNotExist:
+                return render(request, 'fund_fd.html', {'error': 'FD account does not exist.', 'selected_account': ac_no})
+        # this is second button where the user selects the
+      
+        elif 'detailsForm' in request.POST:
+                LIMIT=1000
+                amount = float(request.POST.get('amount', 0))
+                interest_rate = float(request.POST.get('interest_rate', 0))
+                months = int(request.POST.get('months', 0))
+                return render(request, 'details_form.html',{'limit':LIMIT})
+        return render(request, 'details_form.html',{'limit':LIMIT})
+    
+    else:
+        accounts = FDAccountModel.objects.using('other_database').filter(username=user1)
+        initial_data = {f'{account.fd_ac_no}-{account.customer_name}': f'{account.fd_ac_no}-{account.customer_name}' for account in accounts}
+        context = {'initial_data': initial_data}
+        return render(request, 'fd_loan.html', context)
+    
