@@ -8,7 +8,7 @@ SECRET_KEY = 'django-insecure-+#856dxwy%-wd-q5-@xl2)alxs3^vkw(hsje9*1)wp15n%#e=l
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['banking-django-project.onrender.com']
+ALLOWED_HOSTS = ['banking-django-project.onrender.com','127.0.0.1']
 
 # Application definition
 
@@ -142,3 +142,9 @@ LOGIN_URL = reverse_lazy('login')
 SESSION_COOKIE_NAME = 'mybankapp_session'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 DATABASE_ROUTERS = ['system.routers.OtherDatabaseRouter']
+CSRF_COOKIE_SECURE = True
+
+CSRF_TRUSTED_ORIGINS = [
+    'banking-django-project.onrender.com',
+    # Add other trusted origins as needed
+]
