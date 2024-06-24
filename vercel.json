@@ -1,9 +1,22 @@
 {
   "version": 2,
   "builds": [
-    { "src": "banking/wsgi.py", "use": "@vercel/python", "config": { "maxLambdaSize": "15mb" } }
+    {
+      "src": "banking/wsgi.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "15mb"
+      }
+    }
   ],
+  "env": {
+    "MYSQLCLIENT_CFLAGS": "<output_of_mysql_config --cflags>",
+    "MYSQLCLIENT_LDFLAGS": "<output_of_mysql_config --libs>"
+  },
   "routes": [
-    { "src": "/(.*)", "dest": "banking/wsgi.py" }
+    {
+      "src": "/(.*)",
+      "dest": "banking/wsgi.py"
+    }
   ]
 }
