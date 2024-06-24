@@ -8,7 +8,7 @@ SECRET_KEY = 'django-insecure-+#856dxwy%-wd-q5-@xl2)alxs3^vkw(hsje9*1)wp15n%#e=l
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['.vercel.app']
+ALLOWED_HOSTS = ['banking-django-project.onrender.com']
 
 # Application definition
 
