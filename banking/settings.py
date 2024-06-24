@@ -145,6 +145,8 @@ DATABASE_ROUTERS = ['system.routers.OtherDatabaseRouter']
 CSRF_COOKIE_SECURE = True
 
 CSRF_TRUSTED_ORIGINS = [
-    'banking-django-project.onrender.com',
+    'https://banking-django-project.onrender.com',
     # Add other trusted origins as needed
 ]
+
+
