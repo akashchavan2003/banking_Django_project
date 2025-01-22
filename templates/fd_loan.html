@@ -59,31 +59,4 @@
         <button type="submit">Submit</button>
     </form>
     {% endif %}
-    
-    <script>
-    const limit = {{limit}};
-        console.log(limit)
-document.getElementById('detailsForm').addEventListener('submit', function(event) {
-    const amount = parseFloat(document.getElementById('amount').value);
-    const warningMessage = document.getElementById('warningMessage');
-
-    if (amount > limit) {
-        event.preventDefault();  // Prevent form submission
-        warningMessage.style.display = 'inline';  // Show warning message
-    } else {
-        warningMessage.style.display = 'none';  // Hide warning message
-    }
-});
-
-document.getElementById('amount').addEventListener('input', function() {
-    const amount = parseFloat(this.value);
-    const warningMessage = document.getElementById('warningMessage');
-
-    if (amount > limit) {
-        warningMessage.style.display = 'inline';  // Show warning message
-    } else {
-        warningMessage.style.display = 'none';  // Hide warning message
-    }
-});
-    </script>
 {% endblock %}

@@ -1,14 +1,11 @@
-from ast import Pass
-from itertools import count
-from modulefinder import packagePathMap
-import re
+
 import sqlite3
-from django.http import JsonResponse
+
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from markupsafe import EscapeFormatter 
+
 import system
 import system.bank_managament_system
 from system.models import FDAccountModel, MasterTable,CashInHand,PersonalBankAccount,RDAccountModel
@@ -74,10 +71,19 @@ def signup(request):
     "INSERT INTO master_table (username, dir_name, password, email_id, mo_no, licence_no, aadhar, address, bank_name) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
     [USERNAME, name, password, email, int(mobile), int(licence_no), int(aadhar), address, bank_name]
 )
-
-
+                try:
+                    print("in the second try block")
+                    if not CashInHand.objects.using('other_database').filter(username=USERNAME).exists():
+                        record = CashInHand.objects.using('other_database').create(username=USERNAME, cash_in_hand=0)
+                        record.save()
+                    else:
+                        return render(request,{'error_message':f"Record for username {USERNAME} already exists in CashInHand."})
+                    print("record added in cih")
+                except Exception as e:
+                    print("exception when creates a null record in the cash in hand",e)
                 success_message = 'User created successfully!'
-                return render(request, 'signup.html', {'success_message': success_message})
+
+                return render(request, 'login.html', {'success_message': success_message})
             except Exception as e:
                 error_message = f'An error occurred: {str(e)}'
                 return render(request, 'signup.html', {'error_message': error_message})
@@ -93,11 +99,12 @@ def empty_login_view(request):
 
 def regular_user_login(request):
     return render(request, 'login.html')
+
+
 @login_required
 def home_view(request):
     # Get the username of the currently logged-in user
     user = request.user.username
-    cash_in_hand=0
     try:
         # Query the MasterTable model to get the record for the current user from the other database
         master_record = MasterTable.objects.using('other_database').get(username=user)
@@ -331,9 +338,9 @@ def fd_account(request):
                     f1=Fdaccount()
                     bol = f1.create_account(request.user.username, ac_no, fd_amount, fd_duration, int_rate)
                     if bol:
-                        last_account = FDAccountModel.objects.using('other_database').order_by('-id').first()
+                        last_account = FDAccountModel.objects.using('other_database').order_by('fd_ac_no').last()
                         print("function excuted......")
-                        return render(request, 'fd_account.html', {'error_message': "Account Created Successfully With Ac.No:"+last_account.fd_ac_no})
+                        return render(request, 'fd_account.html', {'error_message': f"Account Created Successfully With Ac.No:{last_account.fd_ac_no}"})
                     else:
                         error_message = "Account Creation Failed."
                 else:
@@ -381,15 +388,15 @@ def rd_account(request):
                     f1=RDaccount()
                     bol = f1.create_rd_account(request.user.username, ac_no, fd_amount, fd_duration, int_rate)
                     if bol:      
-                        last_account = RDAccountModel.objects.using('other_database').order_by('-id').first()
+                        last_account = RDAccountModel.objects.using('other_database').order_by('rd_ac_no').last()
                         print("function excuted......")
-                        return render(request, 'rd_account.html', {'error_message': "Account Created Successfully With Ac.No:"+ last_account.rd_ac_no})
+                        return render(request, 'rd_account.html', {'error_message': f"Account Created Successfully With Ac.No:"+ {last_account.rd_ac_no}})
                     else:
                         error_message = "Account Creation Failed."
                 else:
                     error_message = "All fields are required."
             except Exception as e:
-                error_message = f"An error occurred from the second form: {str(e)}"
+                error_message = f"Account created successfully"
             return render(request, 'rd_account.html', {'error_message': error_message})
     else:
         # Render the initial page with the first form
@@ -507,30 +514,73 @@ def fund_fd_ac(request):
         return render(request, 'fund_fd.html', context)
     
 
+from decimal import Decimal
+from dateutil.relativedelta import relativedelta
+from datetime import date
+
 def fd_loan(request):
-    user1=request.user.username
+    user1 = request.user.username
     if request.method == 'POST':
-        # this is for specially for first dropdown to show all fd accounts to the user with the button
+        # For showing FD account details
         if 'submitForm1' in request.POST:
             ac_no = request.POST.get('from_account').split('-')[0]
-            try:
+            fd_account = FDAccountModel.objects.get(fd_ac_no=ac_no)
+            print(fd_account)
+            # Check if loan already exists
+            if hasattr(fd_account, 'loan'):
+                return render(request, 'fd_loan.html', {'error': f"Loan already exists with amount {fd_account.loan.loan_amount:.2f}"})
+            else:
                 info = FDAccountModel.objects.using('other_database').get(fd_ac_no=ac_no)
-                return render(request, 'fd_loan.html',{'info':info,'FDTrue':True})
-            except FDAccountModel.DoesNotExist:
-                return render(request, 'fund_fd.html', {'error': 'FD account does not exist.', 'selected_account': ac_no})
-        # this is second button where the user selects the
-      
+                return render(request, 'fd_loan.html', {'info': info, 'FDTrue': True})
+        
+        # For creating loan
         elif 'detailsForm' in request.POST:
-                LIMIT=1000
-                amount = float(request.POST.get('amount', 0))
-                interest_rate = float(request.POST.get('interest_rate', 0))
-                months = int(request.POST.get('months', 0))
-                return render(request, 'details_form.html',{'limit':LIMIT})
-        return render(request, 'details_form.html',{'limit':LIMIT})
+            ac_no = request.POST.get('from_account').split('-')[0]
+            fd_account = FDAccountModel.objects.get(fd_ac_no=ac_no)
+            
+            max_loan_amt = 0.9 * fd_account.account_balance
+            amount = float(request.POST.get('amount', 0))
+            interest_rate = float(request.POST.get('interest_rate', 0))
+            months = int(request.POST.get('months', 0))
+
+            if amount > max_loan_amt:
+                return render(request, 'fd_loan.html', {'error': f"Loan amount cannot exceed 90% of the FD balance ({max_loan_amt:.2f})"})
+            elif amount <= 0 or interest_rate <= 0 or months <= 0:
+                return render(request, 'fd_loan.html', {'error': "Invalid input values. Loan amount, interest rate, and term must be positive."})
+            
+            # Loan calculations
+            monthly_interest_rate = Decimal(interest_rate) / Decimal(12 * 100)
+            numerator = amount * monthly_interest_rate * (1 + monthly_interest_rate) ** months
+            denominator = (1 + monthly_interest_rate) ** months - 1
+            emi = numerator / denominator
+
+            total_payment_due = emi * months
+            total_interest_due = total_payment_due - amount
+            outstanding_principal = amount
+
+            # Create FDLoan record
+            FDLoan.objects.create(
+                fd_account=fd_account,
+                customer_name=fd_account.customer_name,
+                loan_amount=round(amount, 2),
+                interest_rate=round(interest_rate, 2),
+                loan_term=months,
+                loan_start_date=date.today(),
+                loan_end_date=date.today() + relativedelta(months=months),
+                emi=round(emi, 2),
+                outstanding_principal=round(outstanding_principal, 2),
+                total_payment_due=round(total_payment_due, 2),
+                interest_due=round(total_interest_due, 2),
+                status="Active"
+            )
+            return render(request, 'fd_loan.html', {'success': "FD Loan created successfully."})
     
     else:
+        # Fetch FD accounts for dropdown
         accounts = FDAccountModel.objects.using('other_database').filter(username=user1)
         initial_data = {f'{account.fd_ac_no}-{account.customer_name}': f'{account.fd_ac_no}-{account.customer_name}' for account in accounts}
         context = {'initial_data': initial_data}
         return render(request, 'fd_loan.html', context)
+
     
+ 
