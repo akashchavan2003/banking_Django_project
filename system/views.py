@@ -1,11 +1,13 @@
 
+from doctest import master
 import sqlite3
-
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 from django.contrib import messages
-
+from decimal import Decimal
+from dateutil.relativedelta import relativedelta
+from datetime import date
 import system
 import system.bank_managament_system
 from system.models import FDAccountModel, MasterTable,CashInHand,PersonalBankAccount,RDAccountModel
@@ -116,6 +118,11 @@ def home_view(request):
         count = PersonalBankAccount.objects.using('other_database').filter(username=user).count()
         reg=str(master_record.licence_no)
         dt=get_current_date()
+        print(master_record)
+        print(bank_name)
+        print(dir_name)
+        print(count)
+        print(reg)        
 # Get the count of occurrences of the username in the table
     except MasterTable.DoesNotExist:
         bank_name = None
@@ -139,6 +146,7 @@ def check_ac_bal(request):
         except Exception as e:
             print("Error happend at the check_ac_bal",e)
     return render(request,'check_ac_bal.html')
+
 @login_required
 def credit(request):
     user = request.user.username
@@ -514,10 +522,6 @@ def fund_fd_ac(request):
         return render(request, 'fund_fd.html', context)
     
 
-from decimal import Decimal
-from dateutil.relativedelta import relativedelta
-from datetime import date
-
 def fd_loan(request):
     user1 = request.user.username
     if request.method == 'POST':
@@ -581,6 +585,3 @@ def fd_loan(request):
         initial_data = {f'{account.fd_ac_no}-{account.customer_name}': f'{account.fd_ac_no}-{account.customer_name}' for account in accounts}
         context = {'initial_data': initial_data}
         return render(request, 'fd_loan.html', context)
-
-    
- 

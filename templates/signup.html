@@ -8,6 +8,216 @@
     <link rel="stylesheet" type="text/css" href="{% static 'signup.css' %}">
     <!-- Add Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700;900&display=swap');
+
+        *, body {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 400;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        html, body {
+            height: 100%;
+            background-color: #152733;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        
+        h1 {
+            color: #fff;
+            text-align: center;
+            padding-top: 20px;
+        }
+        
+        .form-holder {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            min-height: 100vh;
+            width: 100%;
+            padding: 20px;
+        }
+        
+        .form-holder .form-content {
+            position: relative;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            width: 100%;
+        }
+        
+        .form-content .form-items {
+            border: 3px solid #fff;
+            padding: 20px;
+            display: inline-block;
+            width: 100%;
+            max-width: 540px;
+            border-radius: 10px;
+            text-align: left;
+            transition: all 0.4s ease;
+        }
+        
+        .form-content h3 {
+            color: #fff;
+            text-align: left;
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .form-content h3.form-title {
+            margin-bottom: 30px;
+        }
+        
+        .form-content p {
+            color: #fff;
+            text-align: left;
+            font-size: 17px;
+            font-weight: 300;
+            line-height: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .form-content label, .was-validated .form-check-input:invalid~.form-check-label, 
+        .was-validated .form-check-input:valid~.form-check-label {
+            color: #fff;
+        }
+        
+        .form-content input[type=text], .form-content input[type=password], 
+        .form-content input[type=email], .form-content select {
+            width: 100%;
+            padding: 9px 20px;
+            text-align: left;
+            border: 0;
+            outline: 0;
+            border-radius: 6px;
+            background-color: #fff;
+            font-size: 15px;
+            font-weight: 300;
+            color: #8D8D8D;
+            transition: all 0.3s ease;
+            margin-top: 16px;
+        }
+        
+        .btn-primary {
+            background-color: #6C757D;
+            outline: none;
+            border: 0px;
+            box-shadow: none;
+        }
+        
+        .btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+            background-color: #495056;
+            outline: none !important;
+            border: none !important;
+            box-shadow: none;
+        }
+        
+        .form-content textarea {
+            position: static !important;
+            width: 100%;
+            padding: 8px 20px;
+            border-radius: 6px;
+            text-align: left;
+            background-color: #fff;
+            border: 0;
+            font-size: 15px;
+            font-weight: 300;
+            color: #8D8D8D;
+            outline: none;
+            resize: none;
+            height: 120px;
+            transition: none;
+            margin-bottom: 14px;
+        }
+        
+        .form-content textarea:hover, .form-content textarea:focus {
+            border: 0;
+            background-color: #ebeff8;
+            color: #8D8D8D;
+        }
+        
+        .mv-up {
+            margin-top: -9px !important;
+            margin-bottom: 8px !important;
+        }
+        
+        .invalid-feedback {
+            color: #ff606e;
+        }
+        
+        .valid-feedback {
+            color: #2acc80;
+        }
+        
+        .row {
+            justify-content: center;
+            width: 100%;
+            margin: 0;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .form-content .form-items {
+                padding: 15px;
+                min-width: unset;
+                width: 100%;
+            }
+            
+            .form-holder .form-content {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 24px;
+                padding-top: 10px;
+            }
+            
+            .form-content h3 {
+                font-size: 22px;
+            }
+            
+            .form-content p {
+                font-size: 15px;
+            }
+            
+            .col-md-12 {
+                padding: 0;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .form-content .form-items {
+                padding: 10px;
+            }
+            
+            .form-content h3 {
+                font-size: 20px;
+            }
+            
+            .form-content p {
+                font-size: 14px;
+                margin-bottom: 20px;
+            }
+            
+            .form-content input[type=text], .form-content input[type=password], 
+            .form-content input[type=email], .form-content select {
+                font-size: 14px;
+                padding: 8px 15px;
+            }
+            
+            .form-button {
+                text-align: center;
+            }
+        }
+    </style>
 </head>
 <body>
     <h1>Signup</h1>
@@ -122,160 +332,3 @@
     </script>
 </body>
 </html>
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700;900&display=swap');
-
-*, body {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 400;
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-    -moz-osx-font-smoothing: grayscale;
-}
-.form_body{
-    align-items: center;
-    justify-content: center;
-}
-html, body {
-    height: 100%;
-    background-color: #152733;
-    overflow: hidden;
-}
-
-
-.form-holder {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      min-height: 100vh;
-}
-
-.form-holder .form-content {
-    position: relative;
-    text-align: center;
-    display: -webkit-box;
-    display: -moz-box;
-    display: -ms-flexbox;
-    display: -webkit-flex;
-    display: flex;
-    -webkit-justify-content: center;
-    justify-content: center;
-    -webkit-align-items: center;
-    align-items: center;
-    padding: 60px;
-}
-
-.form-content .form-items {
-    border: 3px solid #fff;
-    padding: 40px;
-    display: inline-block;
-    width: 100%;
-    min-width: 540px;
-    -webkit-border-radius: 10px;
-    -moz-border-radius: 10px;
-    border-radius: 10px;
-    text-align: left;
-    -webkit-transition: all 0.4s ease;
-    transition: all 0.4s ease;
-}
-
-.form-content h3 {
-    color: #fff;
-    text-align: left;
-    font-size: 28px;
-    font-weight: 600;
-    margin-bottom: 5px;
-}
-
-.form-content h3.form-title {
-    margin-bottom: 30px;
-}
-
-.form-content p {
-    color: #fff;
-    text-align: left;
-    font-size: 17px;
-    font-weight: 300;
-    line-height: 20px;
-    margin-bottom: 30px;
-}
-
-
-.form-content label, .was-validated .form-check-input:invalid~.form-check-label, .was-validated .form-check-input:valid~.form-check-label{
-    color: #fff;
-}
-
-.form-content input[type=text], .form-content input[type=password], .form-content input[type=email], .form-content select {
-    width: 100%;
-    padding: 9px 20px;
-    text-align: left;
-    border: 0;
-    outline: 0;
-    border-radius: 6px;
-    background-color: #fff;
-    font-size: 15px;
-    font-weight: 300;
-    color: #8D8D8D;
-    -webkit-transition: all 0.3s ease;
-    transition: all 0.3s ease;
-    margin-top: 16px;
-}
-
-
-.btn-primary{
-    background-color: #6C757D;
-    outline: none;
-    border: 0px;
-     box-shadow: none;
-}
-
-.btn-primary:hover, .btn-primary:focus, .btn-primary:active{
-    background-color: #495056;
-    outline: none !important;
-    border: none !important;
-     box-shadow: none;
-}
-
-.form-content textarea {
-    position: static !important;
-    width: 100%;
-    padding: 8px 20px;
-    border-radius: 6px;
-    text-align: left;
-    background-color: #fff;
-    border: 0;
-    font-size: 15px;
-    font-weight: 300;
-    color: #8D8D8D;
-    outline: none;
-    resize: none;
-    height: 120px;
-    -webkit-transition: none;
-    transition: none;
-    margin-bottom: 14px;
-}
-
-.form-content textarea:hover, .form-content textarea:focus {
-    border: 0;
-    background-color: #ebeff8;
-    color: #8D8D8D;
-}
-
-.mv-up{
-    margin-top: -9px !important;
-    margin-bottom: 8px !important;
-}
-
-.invalid-feedback{
-    color: #ff606e;
-}
-
-.valid-feedback{
-   color: #2acc80;
-}
-.row{
-    justify-content: center;
-}
-</style>
